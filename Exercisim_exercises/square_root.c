@@ -17,15 +17,14 @@
 
 double square_root(double num)
 {
-    double x = num;
-    double y = 1;
-    double tem = 0.000001;
+	double x = num;
+	double y = 1;
+	double tem = 0.000001;
 
-    while (x - y > tem)
-    {
-        x = (x + y) / 2;
-        y = num / x;
-    }
-
-    return (x);
+	while (x - y > tem)
+	{
+		x = (x + y) / 2;
+		y = num / x;
+	}
+	return (x);
 }
