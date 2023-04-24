@@ -17,7 +17,7 @@
 * it sets *mul* to 1 every time the while loop runs.
 * it updates *digit* to be the modulo of the *candidate* which
 * gets the last digit of the *candidate*, it uses a for loop
-* to multiply 1 by digit in number of times of the length 
+* to multiply 1 by digit in number of times of the length
 * of the *candidate* number. it stores *mul* in the *x* by adding *mul*
 * to *x*. It updates *duplicate* to be equal to *candidate* multiplied
 * by 10 which gives us access to the next number, because
@@ -45,7 +45,7 @@ bool is_armstrong_number(int candidate)
 		{
 			mul *= digit;
 		}
-		x+= mul;
+		x += mul;
 		duplicate /= 10;
 		i++;
 	}
