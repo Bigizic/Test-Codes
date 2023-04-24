@@ -21,29 +21,29 @@ int main(int ac, char *av[])
 
 	if (ac != 1)
 	{
-		perror("Error: enter a number\n");
-		return (1);
+		printf("Error: enter a number\n");
+		exit(98);
 	}
 
 	read_num = read(STDIN_FILENO, buffer, BUFFER_SIZE);
 	if (read_num == -1)
 	{
-		perror("Error reading what you eneter");
-		return (1);
+		printf("Error reading what you eneter\n");
+		exit(98);
 	}
 
 	if (av != NULL)
 	{
 		x = atoi(buffer);
-		if (isdigit(x))
+		if (x >= 0)
 		{
 			square_root(x);
 		}
 		else
 		{
-			perror("Number you entered is not a digit");
-			return (0);
+			printf("Number you entered is not a digit\n");
+			exit(98);
 		}
 	}
 	return (0);
-}			
+}
