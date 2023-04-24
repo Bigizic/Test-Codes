@@ -9,7 +9,7 @@
 * Return: 0
 */
 
-int main(int ac, char *av[])
+int main(void)
 {
 	const char prompt[] = "Enter a positive number: ";
 	int len = sizeof(prompt);
@@ -19,31 +19,26 @@ int main(int ac, char *av[])
 
 	write(STDOUT_FILENO, prompt, len);
 
-	if (ac != 1)
-	{
-		printf("Error: enter a number\n");
-		exit(98);
-	}
-
 	read_num = read(STDIN_FILENO, buffer, BUFFER_SIZE);
 	if (read_num == -1)
 	{
-		printf("Error reading what you eneter\n");
+		printf("Error reading input\n");
+		exit(98);
+	}
+	buffer[read_num] = '\0';
+	if (buffer[0] == '\0')
+	{
+		printf("Error no input entered\n");
+		exit(98);
+	}
+	x = strtod(buffer, NULL);
+	if (x < 0)
+	{
+		printf("Number must be positive\n");
 		exit(98);
 	}
 
-	if (av != NULL)
-	{
-		x = atoi(buffer);
-		if (x >= 0)
-		{
-			square_root(x);
-		}
-		else
-		{
-			printf("Number you entered is not a digit\n");
-			exit(98);
-		}
-	}
+	printf("The square root of %g is %g\n", x, square_root(x));
+
 	return (0);
 }
