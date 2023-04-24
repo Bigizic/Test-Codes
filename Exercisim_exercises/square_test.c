@@ -26,9 +26,9 @@ int main(void)
 		exit(98);
 	}
 	buffer[read_num] = '\0';
-	if (buffer[0] == '\0')
+	if (!isdigit(buffer[0]))
 	{
-		printf("Error no input entered\n");
+		printf("Error enter a positive number\n");
 		exit(98);
 	}
 	x = strtod(buffer, NULL);
