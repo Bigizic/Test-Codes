@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
+
 
 /* function prototypes */
 bool is_armstrong_number(int candidate);
