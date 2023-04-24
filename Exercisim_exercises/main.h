@@ -4,10 +4,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-
+#include <unistd.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 /* function prototypes */
 bool is_armstrong_number(int candidate);
-
+double square_root(double num);
 
 #endif
