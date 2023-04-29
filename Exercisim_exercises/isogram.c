@@ -17,70 +17,8 @@ int _convert_to_lower(int c)
     return (c);
 }
 
-
-
-/**
-* isogram_prompt - function that prints a prompt and read user prompt
-*
-* Description: this function prints a prompt message
-* it takes an input with limit of 1024 characters
-* then gets the length of the input and minus one
-* from the last char to check if the input has
-* a new-line char, normally the input always ends with
-* new-line. It minus one to have access to the last
-* char and tells the compiler to remove the new-line
-* and update it to NULL terminated which indicates
-* end of the string.
-*
-* Return: 0 if success
-*/
-bool isogram_prompt(void)
-{
-	char user_input[1024];
-	size_t len;
-	bool status;
-
-	printf("Enter a word or phrase: ");
-	fgets(user_input, sizeof(user_input), stdin);
-
-	len = strlen(user_input); /* gets length of input */
-	if (len > 0 && user_input[len -1] == '\n')
-	{
-		user_input[len - 1] = '\0';
-	}
-	status = is_isogram(user_input);
-	result(user_input);
-	return (status);
-}
-
-
-/**
-* result - result msg
-*
-* @in: input
-*
-* Return: void
-*/
-int result(char in[])
-{
-	bool x = isogram_prompt();
-
-	if (x)
-	{
-		printf("The input: %s, is an isogram.\n", in);
-	}
-	else
-	{
-		printf("The input: %s, is not an isogram.\n", in);
-	}
-	return (0);
-}
-
-
 /**
 * main - determines if a word is an isogram
-*
-* @phrase: const char type
 *
 * Description: an isogram is a letter that doesn't repeat
 * itself twice in a word or sentence, includeing symbols and spcace.
@@ -92,13 +30,20 @@ int result(char in[])
 *
 * Return: boolen value
 */
-int main(char phrase[])
+int main(void)
 {
     unsigned int i, j;
+    size_t len;
+    char input[1024];
+    char *phrase;
+
+    printf("Enter a word or phrase: ");
+    phrase = fgets(input, sizeof(input), stdin);
 
     if (phrase == NULL)
     {
-        return (false);
+        printf("Error: enter a word or phrase\n");
+        return (0);
     }
 
     for (i = 0; phrase[i] != '\0'; i++)
@@ -115,11 +60,18 @@ int main(char phrase[])
             }
             
             if (phrase[i] == phrase[j])
-                return (false);
+            {
+                printf("The input: %s, is not an isogram because the ""%s"" repeats\n", input, phrase[i]);
+                return (-1);
+            }
 
             if (_convert_to_lower(phrase[i]) == _convert_to_lower(phrase[j]))
-                return (false);
+            {
+                printf("The input: %s, is not an isogram because the ""%s"" repeats\n", input, phrase[i]);
+                return (-1);
+            }
         }
     }
-    return (true);
+    printf("The input: %s, is an isogram", input);
+    return (0);
 }
