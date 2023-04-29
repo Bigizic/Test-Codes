@@ -44,37 +44,31 @@ int main(void)
 	phrase = fgets(input, sizeof(input), stdin);
 	len = strlen(input); /* gets length of input */
 
-	if (len > 0 && input[len -1] == '\n')
-	{
+	if (len > 0 && input[len - 1] == '\n')
 		input[len - 1] = '\0';
-	}
-
 	if (phrase == NULL)
 	{
 		printf("Error: enter a word or phrase\n");
 		return (0);
 	}
-
 	for (i = 0; phrase[i] != '\0'; i++)
 	{
 		if (phrase[i] == ' ' || phrase[i] == '-')
-		{
 			continue;
-		}
 		for (j = i + 1; phrase[j] != '\0'; j++)
 		{
 			if (phrase[j] == ' ' || phrase[j] == '-')
-			{
 				continue;
-			}
 			if (phrase[i] == phrase[j])
 			{
-				printf("The input: %s, is not an isogram because the ""%d"" repeats\n", input, phrase[i]);
+				printf("The input: %s, is not an isogram because the {%d}, repeats\n",
+						input, phrase[i]);
 				return (-1);
 			}
 			if (_convert_to_lower(phrase[i]) == _convert_to_lower(phrase[j]))
 			{
-				printf("The input: %s, is not an isogram because the ""%d"" repeats\n", input, phrase[i]);
+				printf("The input: %s, is not an isogram because the {%d}, repeats\n",
+						input, phrase[i]);
 				return (-1);
 			}
 		}
