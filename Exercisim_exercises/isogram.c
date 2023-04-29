@@ -34,23 +34,20 @@ int _convert_to_lower(int c)
 *
 * Return: 0 if success
 */
-bool isogram_prompt(void)
+int isogram_prompt(char input[])
 {
-	char user_input[1024];
 	size_t len;
-	bool status;
 
 	printf("Enter a word or phrase: ");
-	fgets(user_input, sizeof(user_input), stdin);
+	fgets(input, sizeof(input), stdin);
 
-	len = strlen(user_input); /* gets length of input */
-	if (len > 0 && user_input[len -1] == '\n')
+	len = strlen(input); /* gets length of input */
+	if (len > 0 && input[len -1] == '\n')
 	{
-		user_input[len - 1] = '\0';
+		input[len - 1] = '\0';
 	}
-	status = is_isogram(user_input);
-	result(user_input);
-	return (status);
+	result(input);
+	return (0);
 }
 
 
@@ -63,8 +60,8 @@ bool isogram_prompt(void)
 */
 int result(char in[])
 {
-	bool x = isogram_prompt();
-
+	char x = in;
+	
 	if (x)
 	{
 		printf("The input: %s, is an isogram.\n", in);
@@ -92,7 +89,7 @@ int result(char in[])
 *
 * Return: boolen value
 */
-int main(char phrase[])
+int main(void)
 {
     unsigned int i, j;
 
@@ -121,5 +118,7 @@ int main(char phrase[])
                 return (false);
         }
     }
-    return (true);
+	isogram_prompt(phrase);
+	result(phrase);
+    return (0);
 }
