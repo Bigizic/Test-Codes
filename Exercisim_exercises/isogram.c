@@ -1,13 +1,14 @@
 #include "main.h"
 
 /**
-* _tolower - converts a letter to a small letter
-
+* _convert_to_lower - converts a letter to a small letter
+*
 * @c: char letter to convert
-
+*
 * Return: converted
 */
-int _tolower(int c)
+
+int _convert_to_lower(int c)
 {
     if (c >= 'A' && c <= 'Z')
     {
@@ -31,7 +32,7 @@ int _tolower(int c)
 *
 * Return: boolen value
 */
-bool is_isogram(const char phrase[])
+bool is_isogram(char phrase[])
 {
     unsigned int i, j;
 
@@ -56,7 +57,7 @@ bool is_isogram(const char phrase[])
             if (phrase[i] == phrase[j])
                 return (false);
 
-            if (_tolower(phrase[i]) == _tolower(phrase[j]))
+            if (_convert_to_lower(phrase[i]) == _convert_to_lower(phrase[j]))
                 return (false);
         }
     }
@@ -81,7 +82,7 @@ bool is_isogram(const char phrase[])
 */
 bool isogram_prompt(void)
 {
-	const char user_input[1024];
+	char user_input[1024];
 	size_t len;
 	bool status;
 
@@ -106,7 +107,7 @@ bool isogram_prompt(void)
 *
 * Return: void
 */
-int result(const char in[])
+int result(char in[])
 {
 	bool x = isogram_prompt();
 
@@ -118,4 +119,5 @@ int result(const char in[])
 	{
 		printf("The input: %s, is not an isogram.\n", in);
 	}
+	return (0);
 }
