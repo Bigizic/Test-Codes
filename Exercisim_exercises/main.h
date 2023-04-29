@@ -15,9 +15,9 @@ bool is_armstrong_number(int candidate);
 double square_root(double num);
 
 /* isogram */
-bool is_isogram(const char phrase[]);
-int _tolower(int c);
-int result(const char in[]);
+int _convert_to_lower(int c);
+bool is_isogram(char phrase[]);
+int result(char in[]);
 bool isogram_prompt(void);
 
 int compute(const char *lhs, const char *rhs);
