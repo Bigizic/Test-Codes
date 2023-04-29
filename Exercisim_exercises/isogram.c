@@ -18,7 +18,7 @@ int _convert_to_lower(int c)
 }
 
 /**
-* main - do something
+* main - function that tells if an aplhabet repeats itself
 *
 * Description: this function prints a prompt message
 * it takes an input with limit of 1024 characters
