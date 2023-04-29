@@ -61,13 +61,13 @@ int main(void)
 				continue;
 			if (phrase[i] == phrase[j])
 			{
-				printf("The input: %s, is not an isogram because the {%d}, repeats\n",
+				printf("The input: %s, is not an isogram because the {%c}, repeats\n",
 						input, phrase[i]);
 				return (-1);
 			}
 			if (_convert_to_lower(phrase[i]) == _convert_to_lower(phrase[j]))
 			{
-				printf("The input: %s, is not an isogram because the {%d}, repeats\n",
+				printf("The input: %s, is not an isogram because the {%c}, repeats\n",
 						input, phrase[i]);
 				return (-1);
 			}
