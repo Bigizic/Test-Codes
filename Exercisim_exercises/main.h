@@ -15,5 +15,6 @@ bool is_armstrong_number(int candidate);
 double square_root(double num);
 bool is_isogram(const char phrase[]);
 int _tolower(int c);
+int compute(const char *lhs, const char *rhs);
 
 #endif
