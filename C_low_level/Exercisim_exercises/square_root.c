@@ -18,6 +18,7 @@ double square_root(double num)
 	double x = num;
 	double y = 1;
 	double tem = 0.000001;
+
 	while (x - y > tem)
 	{
 		x = (x + y) / 2;
@@ -45,6 +46,7 @@ int main(void)
 	ssize_t read_num;
 	char buffer[BUFFER_SIZE];
 	double x;
+	
 	write(STDOUT_FILENO, prompt, len);
 	read_num = read(STDIN_FILENO, buffer, BUFFER_SIZE);
 	if (read_num == -1)
