@@ -44,8 +44,8 @@ int main(void)
 	phrase = fgets(input, sizeof(input), stdin);
 	len = strlen(input); /* gets length of input */
 
-	if (len > 0 && input[len - 1] == '\n')
-		input[len - 1] = '\0';
+	if (len > 0 && input[len - 1] == '\n') /* checks if lenght is > 0 */
+		input[len - 1] = '\0'; /* updates last char to NULL */
 	if (phrase == NULL)
 	{
 		printf("Error: enter a word or phrase\n");
