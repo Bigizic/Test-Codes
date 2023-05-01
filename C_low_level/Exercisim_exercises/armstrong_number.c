@@ -64,11 +64,6 @@ bool is_armstrong_number(int candidate)
 /**
 * main - receives user input and check if it's an armstrong number
 *
-* Description: this is a function that allows user to enter a positive number
-* right after the prompt, it read the prompt to buffer, it adds NULL
-* i.e '\0' to end of buffer with size of what it read already.
-* it converts the buffer using strtod to a double type and stores it in x
-*
 * Return: 0
 */
 int main(void)
