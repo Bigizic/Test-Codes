@@ -1,4 +1,4 @@
-## Files are insipred from exercism https://exercism.org
+## Files are insipred from exercism <a href="https://exercism.org" target=_blank>
 
 
 ## 1: Armstrong number:
