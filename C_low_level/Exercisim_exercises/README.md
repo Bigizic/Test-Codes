@@ -1,5 +1,9 @@
 ## Files are insipred from exercism https://exercism.org
 
+## Most files are prompt alike i.e you receive a prompt before result of the file.
+
+### email: olalekanisaac75@gmail.com
+
 
 ## 1: Armstrong number:
 
@@ -65,13 +69,3 @@ The Hamming distance is only defined for sequences of equal length, so an attemp
 
 ---------------------------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-Most files are prompt alike i.e you receive a prompt before result of the file.
-
-email: olalekanisaac75@gmail.com
