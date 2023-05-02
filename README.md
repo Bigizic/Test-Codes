@@ -12,7 +12,4 @@ projects i've built and yet to
 
 i'm also looking to collab
 
-## All codes would be tested with
-		gcc -Wall -Werror -Wextra -pedantic -std=gnu89
-
 ## done
