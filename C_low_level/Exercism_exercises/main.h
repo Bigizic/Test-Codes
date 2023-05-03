@@ -10,6 +10,9 @@
 #include <ctype.h>
 #include <string.h>
 
+/* buffer size */
+#define BUFFER_SIZE 1024
+
 /* function prototypes */
 bool is_armstrong_number(int candidate); /* armstrong number */
 double square_root(double num);
