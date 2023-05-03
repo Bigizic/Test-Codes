@@ -16,7 +16,7 @@ int main(void)
 	char *num, buffer[BUFFER_SIZE];
 	unsigned int len, number;
 
-	printf("Enter a number form 1 - 31000: ");
+	printf("Enter a number form 1 - 3999: ");
 	num = fgets(buffer, sizeof(buffer), stdin);
 	if (num == NULL)
 		return (-1);
