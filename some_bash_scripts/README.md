@@ -1,3 +1,3 @@
 
-# This repo contains useful bash scripts mainly for git
+### This repo contains useful bash scripts mainly for git
 
