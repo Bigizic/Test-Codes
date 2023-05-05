@@ -17,6 +17,6 @@
 bool is_armstrong_number(int candidate); /* armstrong number */
 double square_root(double num);
 int _convert_to_lower(int c); /* isogram */
-int compute(const char *lhs, const char *rhs);:q
+int compute(const char *lhs, const char *rhs);
 
 #endif
