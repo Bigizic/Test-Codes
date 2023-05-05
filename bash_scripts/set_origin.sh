@@ -1,10 +1,7 @@
 #!/bin/bash
 
-echo "Enter access token: "
-read access_token
-echo "Enter username: "
-read username
-echo "Enter repository: "
-read repo
+echo -n "Enter access token: "; read access_token
+echo -n "Enter username: "; read username
+echo -n "Enter repository: "; read repo
 
 git remote set-url origin https://$access_token@github.com/$username/$repo.git
