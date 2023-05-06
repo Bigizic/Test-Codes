@@ -6,19 +6,22 @@
 		chmod +x {filename}
 
 
-#### 1: set_origin.sh: This script allows you to set access token, username and repo while you're in the repo. With this script you don't have to enter username and password whenever you git push.
+## 1: set_origin.sh: 
+This script allows you to set access token, username and repo while you're in the repo. With this script you don't have to enter username and password whenever you git push.
 
 -----------------------------------------------------------------------------------------------------------------
 
-#### 2: git_utils.sh: This script mimick the
+## 2: git_utils.sh: 
+This script mimick the
 		git add {filename}
 		git commit -m ''
 		git push
-#### Commands. The commit message does not allow spaces
+Commands. The commit message does not allow spaces
 
 -----------------------------------------------------------------------------------------------------------------
 
-#### 3: utils2.sh: This script adds all changes at once and writes a commit message for files that have been added
+## 3: utils2.sh:
+This script adds all changes at once and writes a commit message for files that have been added
 
 -----------------------------------------------------------------------------------------------------------------
 
