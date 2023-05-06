@@ -39,10 +39,11 @@ char *phone_number_clean(const char *input)
 	{
 		for (n = 0; n < 10; n++)
 		{
-			printf("%s\n", zeros);
+			printf("%s", zeros);
 		}
 	}
     }
+	printf("\n");
     printf("%lu\n", result);
 	return (0);
 }
