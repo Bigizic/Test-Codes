@@ -9,22 +9,19 @@
 * @candidate: int type
 *
 * Descriptin: This function determines if a
-* number is an amstrong number by storing the number
-* in the *candidate*, it converts the number to
-* a string using the sprintf and stores the converted
-* number in a char array of 1024 chars. it gets the
-* length of the array using strlen and stores it in the
-* *len*. It uses a while loop to traverse through *candidate*
-* it stores the *candidate* in a *duplicate* variable
-* it sets *mul* to 1 every time the while loop runs.
-* it updates *digit* to be the modulo of the *candidate* which
-* gets the last digit of the *candidate*, it uses a for loop
-* to multiply 1 by digit in number of times of the length
-* of the *candidate* number. it stores *mul* in the *x* by adding *mul*
-* to *x*. It updates *duplicate* to be equal to *candidate* multiplied
-* by 10 which gives us access to the next number, because
-* an int type won't store a decimal number, it uses the
-* *i* to restart the loop to check if *duplicate* still > 0
+* number is an amstrong number by receing input
+* in char format, it stores the input and convert
+* to int type. It makes a call to the is_armstrong
+* function and converts the integer input to char
+* in a str variable of 1024 characters. It gets the
+* length of the char and runs a while loop afterwards.
+* it uses modulo 10 to access the last digit of the number
+* and it runs a for loop that's lesser than the length of the
+* number (this for loop allows the use of the raise to power function)
+* in the for loop it multiplies 1 with the last digit and stores it
+* in mul then adds it with 0 and stores it in x. It divides the
+* number inputed, by 10 to have access to the next number and it repeates
+* the same proccess as long as the number inputed is greater than 0.
 *
 * Return: 0
 */
