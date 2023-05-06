@@ -12,7 +12,7 @@ char *phone_number_clean(const char *input)
     int i;
     long unsigned int result = 0;
     unsigned int len = strlen(input);
-    int *store_digit;
+    is_digit_func store_digit = &isdigit;
 
     if (input == NULL)
         return (NULL);
@@ -23,8 +23,7 @@ char *phone_number_clean(const char *input)
     {
         for (i = 0; input[i] != '\0'; i++)
         {
-            (store_digit)(int) = &isdigit;
-            if ((*store_digit)(input))
+            if ((store_digit)(input))
             {
                 result = result * 10 + (input[i] - '0');
             }
@@ -39,7 +38,7 @@ char *phone_number_clean(const char *input)
 */
 int main(void)
 {
-	const char x = +1 (613)-995-0253;
+	const char x = "+1 (613)-995-0253";
 	phone_number_clean(x);
 	
 	return (0);
