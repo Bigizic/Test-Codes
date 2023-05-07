@@ -31,14 +31,15 @@ char *phone_number_clean(const char *input)
 	}
 	sprintf(str, "%d", c);
 	str_len = strlen(str);
-	if (str_len > 0 && str[str_len - 1] == '\n')
-		str[str_len - 1] = '\0';
 
-	if (str_len < 10 || (str_len > 10 && str[0] != 1))
+	if (str_len < 10 || str_len > 10)
 	{
 		for (n = 0; n < 10; n++)
 		{
-			printf("%s", zeros);
+			if (str[0] != 1)
+				printf("%s", zeros);
+			else
+				printf("%s", zeros);
 		}
 	}
 
@@ -46,13 +47,10 @@ char *phone_number_clean(const char *input)
 	{
 		for (j = 0; j < str_len - 1; j++)
 		{
-			strcpy(str[j], str[j + 1]);
+			strcpy(&str[j], &str[j + 1]);
 		}
-		str_len--;
-		for (j = 0; j < str_len; j++)
-		{
-			printf("%s", str[j]);
-		}
+		str[str_len- 1] = '\0';
+		printf("%s", str);
 	}
 	printf("\n");
 	printf("%lu\n", result);
@@ -66,7 +64,7 @@ char *phone_number_clean(const char *input)
 */
 int main(void)
 {
-	const char *x = "12234567890";
+	const char *x = "(223) 456-7890";
 	phone_number_clean(x);
 	
 	return (0);
