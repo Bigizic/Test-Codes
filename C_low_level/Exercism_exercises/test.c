@@ -10,7 +10,6 @@ static void test_cleans_the_number(void)
    } else {
        printf("test_cleans_the_number: FAILED\n");
    }
-   free(result);
 }
 
 static void test_cleans_numbers_with_dots(void)
@@ -23,7 +22,6 @@ static void test_cleans_numbers_with_dots(void)
    } else {
        printf("test_cleans_numbers_with_dots: FAILED\n");
    }
-   free(result);
 }
 
 static void test_cleans_numbers_with_multiple_spaces(void)
@@ -36,7 +34,6 @@ static void test_cleans_numbers_with_multiple_spaces(void)
    } else {
        printf("test_cleans_numbers_with_multiple_spaces: FAILED\n");
    }
-   free(result);
 }
 
 static void test_invalid_when_9_digits(void)
@@ -49,7 +46,6 @@ static void test_invalid_when_9_digits(void)
    } else {
        printf("test_invalid_when_9_digits: FAILED\n");
    }
-   free(result);
 }
 
 static void test_invalid_when_11_digits_does_not_start_with_a_1(void)
@@ -62,7 +58,6 @@ static void test_invalid_when_11_digits_does_not_start_with_a_1(void)
    } else {
        printf("test_invalid_when_11_digits_does_not_start_with_a_1: FAILED\n");
    }
-   free(result);
 }
 
 static void test_valid_when_11_digits_and_starting_with_1(void)
@@ -75,7 +70,6 @@ static void test_valid_when_11_digits_and_starting_with_1(void)
    } else {
        printf("test_valid_when_11_digits_and_starting_with_1: FAILED\n");
    }
-   free(result);
 }
 
 static void test_valid_when_11_digits_and_starting_with_1_even_with_punctuation(void)
@@ -89,7 +83,6 @@ static void test_valid_when_11_digits_and_starting_with_1_even_with_punctuation(
 	}
 	else
 		printf("FAILED\n");
-	free(result);
 }
 
 static void test_invalid_when_more_than_11_digits(void)
@@ -103,7 +96,6 @@ static void test_invalid_when_more_than_11_digits(void)
         }
         else
                 printf("FAILED\n");
-        free(result);
 
 }
 
@@ -118,7 +110,6 @@ static void test_invalid_with_letters(void)
         }
         else
                 printf("FAILED\n");
-        free(result);
 }
 
 static void test_invalid_with_punctuations(void)
@@ -132,7 +123,6 @@ static void test_invalid_with_punctuations(void)
         }
         else
                 printf("FAILED\n");
-        free(result);
 }
 
 static void test_invalid_if_area_code_starts_with_0(void)
@@ -146,7 +136,6 @@ static void test_invalid_if_area_code_starts_with_0(void)
         }
         else
                 printf("FAILED\n");
-        free(result);
 }
 
 static void test_invalid_if_area_code_starts_with_1(void)
@@ -160,7 +149,6 @@ static void test_invalid_if_area_code_starts_with_1(void)
         }
         else
                 printf("FAILED\n");
-        free(result);
 }
 
 static void test_invalid_if_exchange_code_starts_with_0(void)
@@ -174,7 +162,6 @@ static void test_invalid_if_exchange_code_starts_with_0(void)
         }
         else
                 printf("FAILED\n");
-        free(result);
 }
 
 static void test_invalid_if_exchange_code_starts_with_1(void)
@@ -188,7 +175,6 @@ static void test_invalid_if_exchange_code_starts_with_1(void)
         }
         else
                 printf("FAILED\n");
-        free(result);
 }
 
 static void test_invalid_if_area_code_starts_with_0_on_valid_11_digit_number(void)
@@ -202,7 +188,6 @@ static void test_invalid_if_area_code_starts_with_0_on_valid_11_digit_number(voi
         }
         else
                 printf("FAILED\n");
-        free(result);
 }
 
 static void test_invalid_if_area_code_starts_with_1_on_valid_11_digit_number(void)
@@ -216,7 +201,6 @@ static void test_invalid_if_area_code_starts_with_1_on_valid_11_digit_number(voi
         }
         else
                 printf("FAILED\n");
-        free(result);
 }
 static void test_invalid_if_exchange_code_starts_with_0_on_valid_11_digit_number(void)
 {
@@ -229,7 +213,6 @@ static void test_invalid_if_exchange_code_starts_with_0_on_valid_11_digit_number
         }
         else
                 printf("FAILED\n");
-        free(result);
 }
 
 static void test_invalid_if_exchange_code_starts_with_1_on_valid_11_digit_number(void)
@@ -243,7 +226,6 @@ static void test_invalid_if_exchange_code_starts_with_1_on_valid_11_digit_number
         }
         else
                 printf("FAILED\n");
-        free(result);
 }
 
 
