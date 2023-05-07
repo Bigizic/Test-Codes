@@ -13,8 +13,7 @@ char *phone_number_clean(const char *input)
 	long unsigned int result = 0;
 	unsigned int len = strlen(input), str_len;
 	int (*store_digit)(int) = &isdigit;
-	char *str;
-	char *zeros = "0000000000";
+	char *str,*zeros = "0000000000";
 
 	if (input == NULL)
 		return (NULL);
@@ -30,9 +29,15 @@ char *phone_number_clean(const char *input)
 		}
 	}
 	str = malloc(BUFFER_SIZE * sizeof(char));
+	if (str == NULL)
+		return (NULL);
+
 	sprintf(str, "%lu", result);
 	str_len = strlen(str);
-
+	if ((str_len == 10 && str[3] < '2') || (str_len == 11 && str[1] < '2'))
+		return (zeros);
+	if (str_len == 11 && str[4] < '2')
+		return (zeros);
 	if (str_len == 10 && str[0] >= '2')
 	{
 		return (str);
@@ -55,6 +60,7 @@ char *phone_number_clean(const char *input)
         {
 		return (zeros);
 	}
+
 	return (NULL);
 
 }
