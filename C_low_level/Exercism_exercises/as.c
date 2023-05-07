@@ -1,4 +1,5 @@
 #include "main.h"
+
 /**
 * phone_number_clean - cleans up user-entered phone numbers
 *
@@ -11,7 +12,7 @@ char *phone_number_clean(const char *input)
 {
 	int i, c;
 	long unsigned int result = 0;
-	unsigned int len, str_len, count;
+	unsigned int len, str_len, count = 0;
 	int (*store_digit)(int) = &isdigit;
 	char *str,*zeros = "0000000000", *temp;
 
@@ -24,13 +25,12 @@ char *phone_number_clean(const char *input)
 	for (i = 0; input[i] != '\0'; i++)
         {
 		c = (*store_digit)(input[i]);
-		while (c)
+		if (c)
 		{
 			result = result * 10 + (input[i] - '0');
-			count++;
 		}
+		count++;
 	}
-	count++;
 	str = malloc((count + 1) * sizeof(char));
 	sprintf(str, "%lu", result);
 	str_len = strlen(str);
