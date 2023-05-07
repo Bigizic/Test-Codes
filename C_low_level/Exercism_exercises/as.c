@@ -68,6 +68,7 @@ char *phone_number_clean(const char *input)
 		free(str);
 		return (zeros);
 	}
+
 	return (NULL);
 
 }
