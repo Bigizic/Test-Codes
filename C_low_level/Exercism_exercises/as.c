@@ -57,6 +57,7 @@ char *phone_number_clean(const char *input)
 	printf("\n");
 	printf("%lu\n", result);
 	return (0);
+
 }
 
 /**
