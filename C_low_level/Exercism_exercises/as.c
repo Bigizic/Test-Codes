@@ -68,7 +68,6 @@ char *phone_number_clean(const char *input)
 int main(void)
 {
 	const char *x = "12234567890";
-	phone_number_clean(x);
-	
+	phone_number_clean(x);	
 	return (0);
 }
