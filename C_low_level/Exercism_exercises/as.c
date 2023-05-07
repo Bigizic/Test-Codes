@@ -13,7 +13,7 @@ char *phone_number_clean(const char *input)
 	long unsigned int result = 0;
 	unsigned int len, str_len;
 	int (*store_digit)(int) = &isdigit;
-	char *str,*zeros = "0000000000";
+	char *str,*zeros = "0000000000", *temp;
 
 	if (input == NULL)
 		return (NULL);
@@ -45,13 +45,15 @@ char *phone_number_clean(const char *input)
 	}
 	if (str_len == 10 && str[0] >= '2')
 	{
-		return (str);
+		temp = strdup(str);
 		free(str);
+		return (temp);
 	}
 	else if (str[0] == '1' && str_len > 10)
 	{
-		return (&str[1]);
+		temp = strdup(&str[1]);
 		free(str);
+		return (temp);
 	}
 	else if (str_len < 10)
         {
