@@ -32,14 +32,11 @@ char *phone_number_clean(const char *input)
 	sprintf(str, "%d", c);
 	str_len = strlen(str);
 
-	if (str_len < 10 || str_len > 10)
+	if (str_len < 10)
 	{
 		for (n = 0; n < 10; n++)
 		{
-			if (str[0] != 1)
-				printf("%s", zeros);
-			else
-				printf("%s", zeros);
+			printf("%s", zeros);
 		}
 	}
 
