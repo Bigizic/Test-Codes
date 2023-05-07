@@ -54,7 +54,11 @@ char *phone_number_clean(const char *input)
 	else if (str[0] < '2' && str_len == 10)
         {
 		return (zeros);
-        }
+	}
+	else if (str_len == 10 && str[3] < '2')
+	{
+		return (zeros);
+	}
 	return (NULL);
 
 }
