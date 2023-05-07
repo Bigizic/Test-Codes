@@ -32,32 +32,31 @@ char *phone_number_clean(const char *input)
 	sprintf(str, "%lu", result);
 	str_len = strlen(str);
 
-	if (str_len < 10)
+	if (str_len == 10)
 	{
-		for (n = 0; n < 10; n++)
-		{
-			printf("%s", zeros);
-		}
-		printf("\n");
+		printf("%s\n", str);
 	}
-	if (str[0] != 1 && str_len > 10)
-	{
-		for (n = 0; n < 10; n++)
-			printf("%s", zeros);
-		printf("\n");
-	}
-
 	if (str[0] == 1 && str_len >= 10)
 	{
 		for (j = 0; j < str_len - 1; j++)
 		{
-			strcpy(&str[j], &str[j + 1]);
+			str[j] = str[j + 1];
 		}
-		str[str_len- 1] = '\0';
-		printf("%s", str);
+		str[str_len - 1] = '\0';
+		printf("%s\n", str);
 	}
-	if (str_len == 10)
-		printf("%lu\n", result);
+	else if (str_len < 10)
+        {
+                for (n = 0; n < 10; n++)
+                        printf("%s", zeros);
+                printf("\n");
+        }
+	else if (str[0] != 1 && str_len > 10)
+	{
+		for (n = 0; n < 10; n++)
+                        printf("%s", zeros);
+                printf("\n");
+	}
 	return (0);
 
 }
