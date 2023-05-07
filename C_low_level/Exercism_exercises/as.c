@@ -9,12 +9,12 @@
 
 char *phone_number_clean(const char *input)
 {
-	int i, c, n;
+	int i, c;
 	long unsigned int result = 0;
-	unsigned int len = strlen(input), str_len, j;
+	unsigned int len = strlen(input), str_len;
 	int (*store_digit)(int) = &isdigit;
 	char str[BUFFER_SIZE];
-	char *zeros = "0";
+	char *zeros = "0000000000";
 
 	if (input == NULL)
 		return (NULL);
@@ -36,28 +36,19 @@ char *phone_number_clean(const char *input)
 	{
 		printf("%s\n", str);
 	}
-	if (str[0] == 1 && str_len >= 10)
+	else if (str[0] == '1' && str_len > 10)
 	{
-		for (j = 0; j < str_len - 1; j++)
-		{
-			str[j] = str[j + 1];
-		}
-		str[str_len - 1] = '\0';
-		printf("%s\n", str);
+		printf("%s\n", &str[1]);
 	}
 	else if (str_len < 10)
         {
-                for (n = 0; n < 10; n++)
-                        printf("%s", zeros);
-                printf("\n");
+		printf("%s\n", zeros);
         }
 	else if (str[0] != 1 && str_len > 10)
 	{
-		for (n = 0; n < 10; n++)
-                        printf("%s", zeros);
-                printf("\n");
+		printf("%s\n", zeros);
 	}
-	return (0);
+	return (NULL);
 
 }
 
@@ -67,7 +58,7 @@ char *phone_number_clean(const char *input)
 */
 int main(void)
 {
-	const char *x = "12234567890";
+	const char *x = "(023) 456-7890";
 	phone_number_clean(x);	
 	return (0);
 }
