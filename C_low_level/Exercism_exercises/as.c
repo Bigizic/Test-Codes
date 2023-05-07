@@ -13,9 +13,10 @@ char *phone_number_clean(const char *input)
 	long unsigned int result = 0;
 	unsigned int len = strlen(input), str_len;
 	int (*store_digit)(int) = &isdigit;
-	char str[BUFFER_SIZE];
-	char *zeros = "0000000000";
+	char *str;
+	char *zeros = malloc(sizeof(char) * 11);
 
+	zeros = "0000000000";
 	if (input == NULL)
 		return (NULL);
 	if (len == 0)
@@ -29,36 +30,40 @@ char *phone_number_clean(const char *input)
 			result = result * 10 + (input[i] - '0');
 		}
 	}
+	str = malloc(BUFFER_SIZE * sizeof(char));
 	sprintf(str, "%lu", result);
 	str_len = strlen(str);
 
-	if (str_len == 10)
+	if (str_len == 10 && str[0] >= '2')
 	{
-		printf("%s\n", str);
+		return (str);
+		free(zeros);
+		free(str);
 	}
 	else if (str[0] == '1' && str_len > 10)
 	{
-		printf("%s\n", &str[1]);
+		return(&str[1]);
+		free(zeros);
+		free(str);
 	}
 	else if (str_len < 10)
         {
-		printf("%s\n", zeros);
+		return (zeros);
+		free(zeros);
+		free(str);
         }
-	else if (str[0] != 1 && str_len > 10)
+	else if (str[0] != '1' && str_len > 10)
 	{
-		printf("%s\n", zeros);
+		return (zeros);
+		free(zeros);
+		free(str);
 	}
+	else if (str[0] < '2' && str_len == 10)
+        {
+		return (zeros);
+		free(zeros);
+		free(str);
+        }
 	return (NULL);
 
-}
-
-/**
-* main - do something
-* Return: output
-*/
-int main(void)
-{
-	const char *x = "(023) 456-7890";
-	phone_number_clean(x);	
-	return (0);
 }
