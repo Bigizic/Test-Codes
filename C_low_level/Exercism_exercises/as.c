@@ -14,9 +14,8 @@ char *phone_number_clean(const char *input)
 	unsigned int len = strlen(input), str_len;
 	int (*store_digit)(int) = &isdigit;
 	char *str;
-	char *zeros = malloc(sizeof(char) * 11);
+	char *zeros = "0000000000";
 
-	zeros = "0000000000";
 	if (input == NULL)
 		return (NULL);
 	if (len == 0)
@@ -37,32 +36,24 @@ char *phone_number_clean(const char *input)
 	if (str_len == 10 && str[0] >= '2')
 	{
 		return (str);
-		free(zeros);
 		free(str);
 	}
 	else if (str[0] == '1' && str_len > 10)
 	{
 		return(&str[1]);
-		free(zeros);
 		free(str);
 	}
 	else if (str_len < 10)
         {
 		return (zeros);
-		free(zeros);
-		free(str);
         }
 	else if (str[0] != '1' && str_len > 10)
 	{
 		return (zeros);
-		free(zeros);
-		free(str);
 	}
 	else if (str[0] < '2' && str_len == 10)
         {
 		return (zeros);
-		free(zeros);
-		free(str);
         }
 	return (NULL);
 
