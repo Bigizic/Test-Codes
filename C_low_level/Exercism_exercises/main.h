@@ -12,6 +12,7 @@
 
 /* buffer size */
 #define BUFFER_SIZE 1024
+#define PHONE_SIZE 15
 
 /* function prototypes */
 bool is_armstrong_number(int candidate); /* armstrong number */
