@@ -11,7 +11,7 @@ char *phone_number_clean(const char *input)
 {
 	int i, c;
 	long unsigned int result = 0;
-	unsigned int len, str_len;
+	unsigned int len, str_len, count;
 	int (*store_digit)(int) = &isdigit;
 	char *str,*zeros = "0000000000", *temp;
 
@@ -24,12 +24,14 @@ char *phone_number_clean(const char *input)
 	for (i = 0; input[i] != '\0'; i++)
         {
 		c = (*store_digit)(input[i]);
-		if (c)
+		while (c)
 		{
 			result = result * 10 + (input[i] - '0');
+			count++;
 		}
 	}
-	str = malloc(12);
+	count++;
+	str = malloc((count + 1) * sizeof(char));
 	sprintf(str, "%lu", result);
 	str_len = strlen(str);
 
@@ -70,7 +72,7 @@ char *phone_number_clean(const char *input)
 		free(str);
 		return (zeros);
 	}
-
+	free(str);
 	return (NULL);
 
 }
