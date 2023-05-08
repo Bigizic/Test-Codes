@@ -21,4 +21,6 @@ int _convert_to_lower(int c); /* isogram */
 int compute(const char *lhs, const char *rhs);
 char *phone_number_clean(const char *input);
 
+char clean_function(size_t i, size_t input_len, const char *input, char *clean, size_t k);
+
 #endif
