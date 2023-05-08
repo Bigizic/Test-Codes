@@ -1,5 +1,6 @@
 #include "main.h"
 
+/* test codes for phone_number.c and hone_number_alternate.c */
 static void test_cleans_the_number(void)
 {
    const char input[] = "(223) 456-7890";
