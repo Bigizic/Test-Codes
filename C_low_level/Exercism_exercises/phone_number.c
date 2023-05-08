@@ -3,11 +3,18 @@
 
 /**
 * clean_function - checks if input is a digit
+*
 * @i: size_t type
+*
 * @input_len: size_t type
+*
 * @input: const char type
+*
 * @clean: char type
+*
 * @k: size_t type
+*
+* Return: 0
 */
 
 char clean_function(size_t i, size_t input_len, const char *input, char *clean, size_t k)
@@ -20,6 +27,7 @@ char clean_function(size_t i, size_t input_len, const char *input, char *clean, 
 	clean[k] = '\0';
 	return (0);
 }
+
 
 /**
 * phone_number_clean - cleans up user-entered phone numbers
@@ -40,15 +48,11 @@ char *phone_number_clean(const char *input)
 
 	if (input == NULL)
 		return (NULL);
-
 	input_len = strlen(input);
 	if(input_len == 0)
 		return (NULL);
-
 	clean = malloc(input_len + 1);
-
 	clean_function(i, input_len, input, clean, k);
-
 	input_len = strlen(clean);
 	if (input_len == 11 && clean[0] == '1')
 		i = 1;
@@ -68,9 +72,8 @@ char *phone_number_clean(const char *input)
 		i = 2;
 	else
 		i = 0;
-
 	for (; i < strlen(input) && j < 10; i++)
-	{
+        {
 		c = clean[i];
 		if (isdigit(c))
 			word[j++] = c;
