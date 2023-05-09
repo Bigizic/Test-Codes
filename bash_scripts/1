@@ -1,0 +1,14 @@
+#!/bin/bash
+read -p "Enter filename: " filename
+
+first_char=${filename:0:1}
+
+if [[ $first_char =~ [0-9] ]]; then
+  new_filename=${filename:1}
+
+  git add "$filename"
+  git commit -m "Update $new_filename"
+else
+  git add "$filename"
+  git commit -m "Add $filename"
+  fi
