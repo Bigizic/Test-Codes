@@ -8,7 +8,9 @@ if [[ $first_char =~ [0-9] ]]; then
 
   git add "$filename"
   git commit -m "Update $new_filename"
+  git push
 else
   git add "$filename"
   git commit -m "Add $filename"
+  git push
   fi
