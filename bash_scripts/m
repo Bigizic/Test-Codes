@@ -1,0 +1,17 @@
+#!/usr/bin/python3
+import subprocess
+filename = input("Enter Filename: ")
+num_removal =""
+for i in filename:
+    if i.isdigit() or i == '-':
+        continue
+    num_removal += i
+
+    if num_removal:
+        commit_msg = "Update " + num_removal
+    else:
+        commit_msg = "Add " + filename
+
+subprocess.run(["git", "add", filename])
+subprocess.run(["git", "commit", "-m", commit_msg])
+subprocess.run(["git", "push"])
