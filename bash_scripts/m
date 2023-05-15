@@ -7,7 +7,7 @@ for i in filename:
         continue
     num_removal += i
 
-    if num_removal:
+    if filename[0].isdigit():
         commit_msg = "Update " + num_removal
     else:
         commit_msg = "Add " + filename
