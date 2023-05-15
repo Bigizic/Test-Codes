@@ -5,10 +5,16 @@
 #### you can execute shell scripts with
 		chmod +x {filename}
 
-## 1:
-Display a prompt, asks you to enter a filename, trunicate through the name you give it and check if the first digit of your file name is a number if so it removes it and input *update + the name of your file* if the first digit is not a digit it commit with *add + name of your file*. 
+## m:
 
-## This bash script generates a commit message for you 
+This script imports the subprocess module to run some git commands.
+It trunicates through your filename and check if your filename has
+a digit or hypen if yes it skips that character and takes the remaning
+file name and update it in a variable, it proceeds to add Update + the
+trunicated filename if the first digit of the filename is a number
+otherwise it puts the file name and include Add to it
+
+## This python script generates a commit message for you 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 
