@@ -13,19 +13,20 @@ def max_int(my_list=[]):
     count that keeps adding up if the biggest number is not equal to the current number
     in the list it prints the count as the count serves as the index of the biggest number
     """
-    if my_list == None:
+    if my_list:
+        first_int = my_list[0]
+        count = 0
+        for i in my_list:
+            if isinstance(i, int):
+                if i > first_int:
+                    first_int = i
+        for x in my_list:
+            if first_int != x:
+                count +=1
+            else:
+                break
+        print("Maximum number is: {}, and the index is {}".format(first_int, count))
+    else:
         return None
-    first_int = my_list[0]
-    count = 0
-    for i in my_list:
-        if isinstance(i, int):
-            if i > first_int:
-                first_int = i
-    for x in my_list:
-        if first_int != x:
-            count +=1
-        else:
-            break
-    print("Maximum number is: {}, and the index is {}".format(first_int, count))
 
 max_int([1, 900, 2, 13, 344, 5, -13, 3])
