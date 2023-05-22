@@ -12,25 +12,25 @@
 
 unsigned int sum_of_squares(unsigned int number)
 {
-    int count = 0, y, x, add = 0;
+    int count = 0, y = 0, x, add = 0;
 
     while (number > 0)
     {
         x = number - 1;
         number = x;
         count++;
-        if (count > 0)
-        {
-            y = pow(count, 2);
-        }
+	if (count > 0)
+	{
+		y = count * count;
+	}
 	add += y;
     }
-    printf("%d\n", add);
-    return (0);
+    return (add);
 }
 
 int main(void)
 {
-	sum_of_squares(5);
+	unsigned int x = sum_of_squares(5);
+	printf("%u\n", x);
 	return (0);
 }
