@@ -31,6 +31,6 @@ unsigned int sum_of_squares(unsigned int number)
 
 int main(void)
 {
-	sum_of_squares();
+	sum_of_squares(5);
 	return (0);
 }
