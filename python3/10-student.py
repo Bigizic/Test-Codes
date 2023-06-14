@@ -34,7 +34,7 @@ class Student:
             read_input = input("Enter attribute or (q to quit): ")
             if read_input == 'q':
                 break
-            self.input_list.append(user_input)
+            self.input_list.append(read_input)
 
     def to_json(self, attrs=None):
         attrs = self.input_list
