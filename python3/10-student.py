@@ -47,10 +47,16 @@ class Student:
             Student(self) and store it in items then it returns the
             attribute
             """
-        if type(attrs) is list:
+        if attrs is not None and type(attrs) is list:
             return {items: getattr(self, items) for items in attrs
                     if hasattr(self, items)}
         else:
             return vars(self)
-my_object = Student()
+
+first_name = input("Enter first name: ")
+last_name = input("Enter last name: ")
+age = int(input("Enter age: "))
+my_object = Student(first_name, last_name, age)
+my_object.read_input()
+
 print(my_object.to_json())
