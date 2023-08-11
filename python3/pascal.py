@@ -26,7 +26,9 @@ def pascal_triangle():
         for j in range(prompt - i - 1):
             print(" ", end="")
         for j in range(i + 1):
-            print(result[i][j], end=" ")
+                print(result[i][j], end="")
+                if j < i:
+                    print(", ", end="")
         print()
 
 pascal_triangle()
