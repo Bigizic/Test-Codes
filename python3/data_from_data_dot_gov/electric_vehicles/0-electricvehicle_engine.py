@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 Base = declarative_base()
 
 
-class ElectricVehicle():
+class ElectricVehicle(Base):
     """ """
     __engine = None
     __session = None
@@ -38,11 +38,22 @@ class ElectricVehicle():
     def create_columns(self):
         """Creates columns from self.__columns_dict
         """
+        __tablename__ = 'EV_DATA'
         if self.__columns_dict:
             columns = []
             for cols, data_type in self.__columns_dict.items():
-                columns.append(f"{cols} {data_type.__name__}")
-            query = f"CREATE TABLE IF NOT EXISTS EV_DATA ({', '.join(columns)})"
+                clean_col = cols.replace(' ', '_').replace('(',
+                        '').replace(')', '').replace('-', '_to_')
+                if clean_col[0] and data_types.__name__[0] is int:
+                    f"{clean_col} = Column(Integer, primary_key=True)"
+                elif clean_col[0] and data_types.__name__[0] is str:
+                    f"{clean_col} = Column(String, primary_key=True)"
+                if clean_col[1:] and data_type.__name__[1:] is int:
+                    f"{clean_col} = Column(Integer)"
+                elif clean_col[1:] and data_type.__name__[1:] is str:
+                    f"{clean_col} = Column(String)"
+                #columns.append(f"{clean_col} {data_type.__name__}")
+            #query = f"CREATE TABLE IF NOT EXISTS EV_DATA ({', '.join(columns)})"
             self.__session.execute(query)
             self.__session.commit()
 
@@ -80,3 +91,4 @@ if __name__ == '__main__':
                            'Electric_Vehicle_Population_Data_1.csv')
     main.pattern_seperator()
     main.create_columns()
+    Base.metadata.create_all(main.__engine)
