@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# bash script that copies the csv files to models
+
+cp Electric_Vehicle_Population_Data_1.csv Electric_Vehicle_Population_Data_2.csv models/
+echo "Done"
