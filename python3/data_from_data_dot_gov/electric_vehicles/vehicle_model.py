@@ -9,53 +9,39 @@ from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
-
-class ElectricVehicle(Base):
-    """ """
-    __engine = None
-    __session = None
+class ElectricVehicleModel():
+    """This class creates columns and their respective data types
+    from the electric_vehicle_1.csv
+    
+    Args:
+        __columns_dict - contains dictionary representation of the
+        columns names and their data types
+    """
     __columns_dict = {}
 
-    def __init__(self, file_1, file_2):
+    def __init__(self):
         """creates instances to the path of the csv files
+        assuming the csv scrapper has already been executed
         """
-        self.file_1 = file_1
-        self.file_2 = file_2
-        self.connector()
-
-    def connector(self):
-        """creates a connection to mysql databse
-        """
-        # pass_wd = os.getenv('pwd', 'password')
-        d_b = "ElectricVehicle"
-        host = "localhost"
-        self.__engine = create_engine(
-            'mysql+mysqldb://user_1738:groot@{}:3306/{}'
-            .format(host, d_b), pool_pre_ping=True)
-        Session = sessionmaker(bind=self.__engine)
-        self.__session = Session()
+        self.file_1 = 'Electric_Vehicle_Population_Data_1.csv'
+        self.file_2 = 'Electric_Vehicle_Population_Data_2.csv'
 
     def create_columns(self):
-        """Creates columns from self.__columns_dict
         """
-        __tablename__ = 'EV_DATA'
+        Creates columns from self.__columns_dict
+
+        Returns:
+            new_columns_dict - containing columns names and their
+            data types
+        """
         if self.__columns_dict:
-            columns = []
+            new_columns_dict = {}
             for cols, data_type in self.__columns_dict.items():
                 clean_col = cols.replace(' ', '_').replace('(',
                         '').replace(')', '').replace('-', '_to_')
-                if clean_col[0] and data_types.__name__[0] is int:
-                    f"{clean_col} = Column(Integer, primary_key=True)"
-                elif clean_col[0] and data_types.__name__[0] is str:
-                    f"{clean_col} = Column(String, primary_key=True)"
-                if clean_col[1:] and data_type.__name__[1:] is int:
-                    f"{clean_col} = Column(Integer)"
-                elif clean_col[1:] and data_type.__name__[1:] is str:
-                    f"{clean_col} = Column(String)"
-                #columns.append(f"{clean_col} {data_type.__name__}")
-            #query = f"CREATE TABLE IF NOT EXISTS EV_DATA ({', '.join(columns)})"
-            self.__session.execute(query)
-            self.__session.commit()
+                new_columns_dict[clean_col] = data_type.__name__
+
+            return new_columns_dict
 
     def pattern_seperator(self):
         """This function uses a pattern to read the lines from the
@@ -84,11 +70,3 @@ class ElectricVehicle(Base):
                         data_list.append(str)
         # dict containg columns name and their respective value
         self.__columns_dict = dict(zip(columns_list, data_list))
-
-
-if __name__ == '__main__':
-    main = ElectricVehicle('Electric_Vehicle_Population_Data_1.csv',
-                           'Electric_Vehicle_Population_Data_1.csv')
-    main.pattern_seperator()
-    main.create_columns()
-    Base.metadata.create_all(main.__engine)
