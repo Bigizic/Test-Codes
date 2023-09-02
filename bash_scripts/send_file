@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# a bash script that transfers a file from a client to a server
+
+transfer_file () {
+        echo -n "File Path?: "; read file_path
+        echo -n "Ip?: "; read ip_v4
+        echo -n "User name of receiver?: "; read user_name
+        echo -n "Path to your private ssh token?: "; read ssh_token
+
+        # disable strict host key checking for scp
+        export SCP_OPTIONS="-o StrictHostKeyChecking=no"
+
+        scp $SCP_OPTIONS -i "$ssh_token" "$file_path" "$user_name"@"$ip_v4":~/
+}
+transfer_file "$@" # to pass all script arguments to the function
