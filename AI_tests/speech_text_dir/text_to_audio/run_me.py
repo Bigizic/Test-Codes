@@ -1,7 +1,7 @@
 #!/usr/bin/python3
-"""This module uses the play api to check the available voices
-a user can generate and filter the data according to the user
-prefences
+"""This module is like run_me_sample but it prompts the user for
+a text to generate a voice of the text the user passed.
+    You can save the audio file or download it if you like
 """
 
 import requests
@@ -9,7 +9,8 @@ import language_checker
 
 
 def final_language():
-    """Formats the language from language_checker to `language (Cn)`
+    """Formats the language from language_checker to
+    `language (LanguageCode)`
     """
     temp = language_checker.lang_checker()
     try:
@@ -24,12 +25,12 @@ def final_language():
     except TypeError as e:
         print(e)
 
-
 def voices():
+    """function definition """
     api = input("Enter User ID: ")
     secret_key = input("Enter secret key: ")
     # check if api and secret_key is valid
-    url = "https://play.ht/api/v1/getVoices"
+    url = "https://play.ht/api/v2/tts"
     header = {
         "accept": "application/json",
         "AUTHORIZATION": secret_key,
@@ -41,53 +42,25 @@ def voices():
     except requests.exceptions.HTTPError as e:
         print(e)
         return
-
-    pref = " [1: Standard voice type], [2: Neural voice type]"
-    gender = input("Enter gender: ")
-    voice_type = input("Select voice type" + pref + ": ")
-    # pref = "\n>>>\tEg. English, Turkish, Swedish"
-    ok = "please try changing your query maybe the gender {}".format(
-          "voice-type/langauage")
-    lang = final_language()
-    #api = '91xSeuUNvCVUei2vwnHy0oh6j112'
-    #secret_key = '4d79ed39544f4a0897996cc0174d9e33'
-
-    v = "Neural" if voice_type == '2' else "Standard"
-
-    preferences = {
-        "gender": gender,
-        "voiceType": v,
-        "language": lang
-    }
-    try:
-        response = requests.get(url, headers=header)
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        print(e)
-        return
-    try:
-        json_format = response.json()
-        if json_format and "voices" in json_format:
-            match = {}
-            for voice in json_format["voices"]:
-                if (
-                    voice["gender"].lower() == gender.lower() and
-                    voice["voiceType"].lower() == v.lower() and
-                    voice["language"].lower() == lang.lower()
-                    ):
-                    match["name"] = voice.get("name")
-                    match["sample"] = voice.get("sample")
-            if match:
-                print("Your JSON Data.. Thanks to play.ht")
-                for key, value in match.items():
-                    print(key, value, sep=": ")
-                    print()
+    msg = "Do you want to use the default voice? (y/yes) or (n/no) "
+    text = input("Enter Tex:  ")
+    pro = input(msg)
+    while True:
+        pr = pro.lower()
+        if pr not in ['no', 'n'] or pr not in ['yes', 'y']:
+            pro = input("Enter y or n: ")
+        else:
+            break
+    if pro.lower() == 'yes':
+        msg = "Enter 1 to select default male voice"
+        word = f'{msg} Enter 2 to select deafult female voice '
+        gender = input(word)
+        while True:
+            if gender not in ['1', '2']:
+                gender = input("Enter 1 for male, 2 for female: ")
             else:
-                print(ok)
-
-    except ValueError:
-        print("Not a valid JSON")
-
-
-if __name__ == '__main__':
-    voices()
+                break
+    if pro.lower() == 'no':
+        msg = "Did you try the run_me_sample?? You can get a"
+        print(f'{msg} voice sample to use if you do')
+    voice = "larry" if gender == '1' else 
