@@ -6,7 +6,7 @@ There are two modes you can try the sample mode that generates the link to the d
 
 ## To try `no text to audio script` use `./run_me_sample.py`:
 
-This means you'll not be providing a text or given a prompt to enter a text to conver to audio but you'll be listening to available voices based on the data
+This means you'll not be providing a text or given a prompt to enter a text to convert to audio but you'll be listening to available voices based on the data
 you provided.
 
 - [X] You'd need to create an account on <a href="https://play.ht/"> Play{dot}ht</a> request a secret key use the user id when you get the user id prompt, do the same for the secret key.
