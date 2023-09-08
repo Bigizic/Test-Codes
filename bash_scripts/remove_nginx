@@ -2,7 +2,7 @@
 # bash script to unistall nginx, don't ask
 
 sudo systemctl stop nginx
-sudo apt-get remove nginx
-sudo apt-get purge nginx
+sudo apt-get -y remove nginx
+sudo apt-get -y purge nginx
 sudo apt-get autoremove
 sudo systemctl start nginx # should return error
