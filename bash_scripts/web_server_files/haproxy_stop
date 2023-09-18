@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+sudo systemctl stop haproxy
+sudo systemctl status haproxy
