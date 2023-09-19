@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+sudo lsof -i :80 # this can be used to list all process name running on port 80 plus their PID
+
+sudo ss -tuln | grep :80: # used to list all processes using port 80 but it doesn't list their names
+
+nmap -F [ip address]
