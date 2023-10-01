@@ -3,4 +3,5 @@ sudo apt-get -y update
 sudo apt-get install nginx -y
 sudo apt install net-tools -y
 sudo apt install nmap
+pip3 install flask
 pip3 install flask_cors
