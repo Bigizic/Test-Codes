@@ -1,6 +1,7 @@
 ## Install request module and use it
 
 ``sudo npm install request --global``
+
 ``export NODE_PATH=/usr/lib/node_modules``
 
 Notes: Request module has been deprecated since February 2020 
