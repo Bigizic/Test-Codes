@@ -15,4 +15,4 @@ git config --local user.email "$input_email"
 git config --local commit.gpgsign true
 git config --local user.signingkey $key_id
 
-#   echo $key_id
+# echo $key_id
