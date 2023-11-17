@@ -3,6 +3,8 @@ sudo apt-get -y update
 sudo apt-get install nginx -y
 sudo apt install net-tools -y
 sudo apt install nmap
-sudo apt install mysql-client-core-8.0
+sudo apt install python3-pip
+sudo apt install mysql-server
+sudo mysql_secure_installation
 pip3 install flask
 pip3 install flask_cors
