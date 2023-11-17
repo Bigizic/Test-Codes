@@ -34,6 +34,31 @@ Install mysql alchmey dependencies
     sudo apt-get install libmysqlclient-dev
 
     sudo apt-get install libmariadbclient-dev
+
+
+Then update mysql to version 8
+
+	sudo apt-get update
+	sudo apt-get install wget
+	wget https://dev.mysql.com/get/mysql-apt-config_0.8.23-1_all.deb
+	sudo dpkg -i mysql-apt-config_0.8.23-1_all.deb
+
+
+Update package list
+
+	sudo apt-get update
+
+
+Update mysql server
+
+	sudo apt-get upgrade mysql-server
+ 	sudo service mysql restart
+
+If this error presist update libmariab3
+error:  NameError: name '_mysql' is not defined
+
+	sudo apt-get install libmariadb3 libmariadb-dev
+
     
 
 
