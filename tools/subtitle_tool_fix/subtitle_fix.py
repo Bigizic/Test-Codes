@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-
 import re
 
 
@@ -65,5 +64,4 @@ with open(sub_file, "r") as input_file, open("output_subtitle.srt", "w") as outp
             # Subtitle text, simply copy to the output file
             output_file.write(line)
 
-print("Subtitle adjustment completed.")
-
+print("Subtitle adjustment completed.\n\tHAVE A GREAT DAY!!!")
