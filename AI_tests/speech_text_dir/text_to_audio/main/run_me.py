@@ -109,7 +109,7 @@ def voices():
             print("Listen to a sample here: {}".format(items))
             print()
     except ValueError:
-        print("Not a valid json")
+        print("Nope not a valid json")
 
 
 if __name__ == '__main__':
