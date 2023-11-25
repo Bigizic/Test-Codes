@@ -19,6 +19,7 @@ def ai_transcript():
 
     # Upload your local file to the AssemblyAi APi
     if file_type == '1':
+        print("NICE NOVEMBER STREAKS")
         file_path = input("Enter path to file: ")
         with open(file_path, "rb") as open_file:
             response = requests.post(base_url + "/upload",
