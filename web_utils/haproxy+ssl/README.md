@@ -1,9 +1,5 @@
 ## This direcotry contains files concerning loadbalancer and haproxy and ssl certificates
 
-### To generate a ssl certificate, install certbot after that run this to generate a 2048 bits certificate
-
-    sudo certbot certonly --rsa-key-size 2048 -d {domain_name} in my case - www.isaacajibola.tech
-
 ### To generate the normal 1024 bits certificate
 
     sudo certbot certonly --standalone -d {domain_name} in my case - www.isaacajibola.tech
