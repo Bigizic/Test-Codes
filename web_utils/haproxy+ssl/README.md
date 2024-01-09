@@ -170,6 +170,11 @@ archive fullchain.pem file it'd look like this:
 
 
 
+
+You can copy contents of priv and full chain then save in a file, rename that file then mv to /etc/letsencrypt/archieve/domainname
+
+        sudo cat /etc/letsencrypt/archive/www.domainname.xyz/privkey1.pem /etc/letsencrypt/archive/www.domainname.xyz/fullchain1.pem > temp
+
 This will allow the haproxy to load the private and certificate from the fullchain.pem file at once. If you don't do it like that, you might encounter this error:
 
       sudo haproxy -c -f /etc/haproxy/haproxy.cfg
