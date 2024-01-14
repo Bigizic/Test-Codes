@@ -1,3 +1,7 @@
+for mysql v8 upwards use:
+
+		ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password'
+
 If issue presists when the passsword entered in mysql is wrong and i forget password unistal mysql and it's database. Like this:
 
 1. sudo service mysql stop

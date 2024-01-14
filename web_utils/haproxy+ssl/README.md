@@ -1,9 +1,5 @@
 ## This direcotry contains files concerning loadbalancer and haproxy and ssl certificates
 
-### To generate a ssl certificate, install certbot after that run this to generate a 2048 bits certificate
-
-    sudo certbot certonly --rsa-key-size 2048 -d {domain_name} in my case - www.isaacajibola.tech
-
 ### To generate the normal 1024 bits certificate
 
     sudo certbot certonly --standalone -d {domain_name} in my case - www.isaacajibola.tech
@@ -169,6 +165,11 @@ archive fullchain.pem file it'd look like this:
         -----END CERTIFICATE-----
 
 
+
+
+You can copy contents of priv and full chain then save in a file, rename that file then mv to /etc/letsencrypt/archieve/domainname
+
+        sudo cat /etc/letsencrypt/archive/www.domainname.xyz/privkey1.pem /etc/letsencrypt/archive/www.domainname.xyz/fullchain1.pem > temp
 
 This will allow the haproxy to load the private and certificate from the fullchain.pem file at once. If you don't do it like that, you might encounter this error:
 

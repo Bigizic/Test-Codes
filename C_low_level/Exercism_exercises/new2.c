@@ -1,5 +1,11 @@
 #include "main.h"
 
+/**
+* square_of_sum - function that returns the square of a sum of a big number
+* number: <unsigned int>
+* Return: new square of sum of unsigned int
+*/
+
 unsigned int square_of_sum(unsigned int number)
 {
     int count = 0, y = 0, x, add = 0;
