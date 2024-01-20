@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-sudo systemctl stop mysql
+#sudo systemctl stop mysql
 sudo apt purge mysql-server
 sudo apt purge mysql-server mysql-client mysql-common mysql-server-core-* mysql-client-core-*
 dpkg -l | grep mysql
