@@ -14,4 +14,4 @@ sudo apt-get install -y libpython3-dev
 sudo apt install mysql-server -y
 sudo apt install nginx
 sudo apt-get update
-sudo apt-get upgrade
+sudo apt-get upgrade -y
