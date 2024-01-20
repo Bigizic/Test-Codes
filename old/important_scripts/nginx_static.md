@@ -20,11 +20,11 @@ give www-data user same privileges like the ubuntu(default) user or specific use
 
 #### lets give privileges:
 
-	gpasswd -a www-data ubuntu
+	sudo gpasswd -a www-data ubuntu
 
 #### or:
 
-	gpasswd -a www-data a_user
+	sudo gpasswd -a www-data a_user
 
 make sure a_user or ubuntu can enter and read all directories
 
