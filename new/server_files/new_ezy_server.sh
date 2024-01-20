@@ -12,5 +12,6 @@ sudo apt-get install -y build-essential
 sudo apt-get install -y python3.4-dev
 sudo apt-get install -y libpython3-dev
 sudo apt install mysql-server -y
+sudo apt install nginx
 sudo apt-get update
 sudo apt-get upgrade
