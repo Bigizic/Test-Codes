@@ -7,7 +7,7 @@ sub_file = input("Enter sub file path: ")
 time_d = input("\nEnter time difference\nin this format H:M:S\n(e.g 00:00:35) the difference is 35 seconds,\nit'll adjust the subtitle file by 35 seconds\nbut keep the text time interval >>> ")
 
 
-def time_to_seconds(time_str):
+def time_to_seconds(time_str: str) -> str:
     """Function to convert a time string (hh:mm:ss,ms) to seconds
     Takes in string format the time like {00:02:59,000}
     Return the current time in seconds
@@ -21,7 +21,7 @@ def time_to_seconds(time_str):
     return h * 3600 + m * 60 + s + ms
 
 
-def seconds_to_time(seconds):
+def seconds_to_time(seconds: str)-> str:
     """Function to convert seconds to a time string (hh:mm:ss,ms)
     Converts the seconds from time_to_seconds to time format
     Return time format
