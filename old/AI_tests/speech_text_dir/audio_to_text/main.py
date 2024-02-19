@@ -6,7 +6,7 @@ import json
 import time
 from sys import argv
 
-def ai_transcript():
+def ai_transcript() -> None:
     api_key = input("Enter api key: ")
     question = "Enter 1 to import from local file\n"
     file_type = input(question + "Enter 2 to import from url: ")
