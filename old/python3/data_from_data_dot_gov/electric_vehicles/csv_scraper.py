@@ -3,7 +3,7 @@
 # this python script would create a new csv file from the original
 # electric_vehicle data to split the data into two for easier access
 
-def csv_spliter():
+def csv_spliter() -> None:
     my_file = "Electric_Vehicle_Population_Data.csv"
 
     file1 = "Electric_Vehicle_Population_Data_1.csv"
