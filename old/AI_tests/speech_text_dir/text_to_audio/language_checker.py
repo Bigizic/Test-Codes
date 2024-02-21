@@ -2,7 +2,7 @@
 """ """
 
 
-def extra_checks(lang):
+def extra_checks(lang: str) -> str:
     arr = []
     file_path = 'languages.txt'
     with open(file_path, "r") as open_file:
