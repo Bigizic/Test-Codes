@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+
+
 def max_int(my_list=[]):
     """
     Description: functiions that checks if a list only contains integers
@@ -26,7 +28,7 @@ def max_int(my_list=[]):
             else:
                 break
         print("Maximum number is: {}, and the index is {}".format(first_int, count))
-    else:
-        return None
+
+    return None
 
 max_int([1, 900, 2, 13, 344, 5, -13, 3])
