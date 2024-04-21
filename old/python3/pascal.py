@@ -31,4 +31,6 @@ def pascal_triangle():
                     print(", ", end="")
         print()
 
-pascal_triangle()
+
+if __name__ == '__main__':
+    pascal_triangle()
