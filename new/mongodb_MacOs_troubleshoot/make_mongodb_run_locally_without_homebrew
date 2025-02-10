@@ -1,0 +1,3 @@
+Install mongodb locally form website and install mongosh locally from website
+
+move mongodb and mongosh to /usr/local/mongodb and /usr/local/bin
