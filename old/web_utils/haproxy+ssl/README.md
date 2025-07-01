@@ -183,3 +183,24 @@ Another alternative is to copy the contents of the certifcate and the private ke
 
 
 Haproxy should be fine after this configurations
+
+# DATE: 01-07-25
+### Contination of SSL Cert
+
+using the --standalone option when creating a certificate for a website. That mode requires stopping NGINX to bind port 80.
+
+TO fix this 
+
+``sudo certbot --nginx -d mydomain.com``
+
+using nginx is being used as the webserver, the certbot nginx plugin can be used to generate a certificate
+
+to test auto-renewal of a certificate:
+
+try:
+``sudo certbot renew --dry-run
+``
+also to check certificates available for auto renewal check the dir:
+
+``/etc/letsencrypt/renewal/
+``
