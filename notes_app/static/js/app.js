@@ -285,13 +285,57 @@ function copyPath() {
     });
 }
 
-function toggleView(viewType) {
-    // This is a placeholder - view toggle functionality
-    alert('View mode: ' + viewType + ' (Feature coming soon)');
+function setViewMode(mode) {
+    const listView = document.getElementById('list-view');
+    const gridView = document.getElementById('grid-view');
+    const listOption = document.getElementById('view-list-option');
+    const gridOption = document.getElementById('view-grid-option');
+    
+    if (mode === 'grid') {
+        if (listView) listView.style.display = 'none';
+        if (gridView) gridView.style.display = 'grid';
+        if (listOption) listOption.classList.remove('active');
+        if (gridOption) gridOption.classList.add('active');
+        localStorage.setItem('fileViewMode', 'grid');
+    } else {
+        if (listView) listView.style.display = 'table';
+        if (gridView) gridView.style.display = 'none';
+        if (listOption) listOption.classList.add('active');
+        if (gridOption) gridOption.classList.remove('active');
+        localStorage.setItem('fileViewMode', 'list');
+    }
+    
     document.querySelectorAll('.menu-item').forEach(item => {
         item.classList.remove('active');
     });
 }
+
+function closeApplication() {
+    // Navigate to home and replace history
+    window.location.replace('/');
+}
+
+// Load saved view mode on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Only set view mode if we're on the file explorer page
+    const listView = document.getElementById('list-view');
+    if (listView) {
+        const savedViewMode = localStorage.getItem('fileViewMode') || 'list';
+        setViewMode(savedViewMode);
+        
+        // Add right-click support for grid items
+        const gridItems = document.querySelectorAll('.grid-item');
+        gridItems.forEach(item => {
+            item.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const path = this.dataset.path;
+                const isDir = this.dataset.isDir === 'true';
+                showContextMenu(e, path, isDir);
+            });
+        });
+    }
+});
 
 function showHiddenFiles() {
     // This would require backend changes to show hidden files
@@ -406,12 +450,19 @@ function showContextMenu(e, path, isDir) {
     
     currentContextPath = path;
     const deleteOption = document.getElementById('ctx-delete');
+    const pasteOption = document.getElementById('ctx-paste');
+    const clipboard = getClipboard();
     
     // Show/hide delete option based on whether an item is selected
     if (path) {
-        deleteOption.style.display = 'block';
+        if (deleteOption) deleteOption.style.display = 'block';
     } else {
-        deleteOption.style.display = 'none';
+        if (deleteOption) deleteOption.style.display = 'none';
+    }
+    
+    // Show/hide paste option based on clipboard
+    if (pasteOption) {
+        pasteOption.style.display = clipboard ? 'block' : 'none';
     }
     
     // Position context menu
@@ -561,3 +612,284 @@ function deleteFileOrFolder(path) {
         alert('Error deleting: ' + error);
     });
 }
+
+// ==================== FILE OPTIONS MENU ====================
+
+let currentFileOptionsPath = '';
+let currentFileOptionsIsDir = false;
+
+function showFileOptions(event, path, isDir) {
+    event.stopPropagation();
+    currentFileOptionsPath = path;
+    currentFileOptionsIsDir = isDir;
+    
+    const menu = document.getElementById('file-options-menu');
+    if (!menu) return;
+    
+    // Show/hide paste option based on clipboard
+    const pasteOption = document.getElementById('opt-paste');
+    const clipboard = getClipboard();
+    if (pasteOption) {
+        pasteOption.style.display = clipboard ? 'block' : 'none';
+    }
+    
+    // Position menu
+    menu.style.display = 'block';
+    menu.style.left = event.pageX + 'px';
+    menu.style.top = event.pageY + 'px';
+    
+    // Keep menu within viewport
+    const rect = menu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) {
+        menu.style.left = (event.pageX - rect.width) + 'px';
+    }
+    if (rect.bottom > window.innerHeight) {
+        menu.style.top = (event.pageY - rect.height) + 'px';
+    }
+}
+
+function hideFileOptionsMenu() {
+    const menu = document.getElementById('file-options-menu');
+    if (menu) {
+        menu.style.display = 'none';
+    }
+}
+
+// Clipboard management
+function getClipboard() {
+    const data = sessionStorage.getItem('fileClipboard');
+    return data ? JSON.parse(data) : null;
+}
+
+function setClipboard(filepath, operation) {
+    const data = { filepath, operation, timestamp: Date.now() };
+    sessionStorage.setItem('fileClipboard', JSON.stringify(data));
+    updateClipboardIndicator();
+}
+
+function clearClipboard() {
+    sessionStorage.removeItem('fileClipboard');
+    updateClipboardIndicator();
+}
+
+function updateClipboardIndicator() {
+    const indicator = document.getElementById('clipboard-indicator');
+    const text = document.getElementById('clipboard-text');
+    const clipboard = getClipboard();
+    
+    if (clipboard && indicator && text) {
+        const itemName = clipboard.filepath.split('/').pop();
+        const operation = clipboard.operation === 'cut' ? 'Cut' : 'Copied';
+        text.textContent = `${operation}: ${itemName}`;
+        indicator.style.display = 'flex';
+    } else if (indicator) {
+        indicator.style.display = 'none';
+    }
+}
+
+// File operations
+function renameFile(path) {
+    const itemName = path.split('/').pop();
+    const modal = document.getElementById('rename-modal');
+    const input = document.getElementById('rename-input');
+    const filepathInput = document.getElementById('rename-filepath');
+    
+    if (modal && input && filepathInput) {
+        filepathInput.value = path;
+        input.value = itemName;
+        input.select();
+        modal.classList.add('show');
+    }
+    hideFileOptionsMenu();
+}
+
+function copyFile(path) {
+    setClipboard(path, 'copy');
+    hideFileOptionsMenu();
+    alert('File copied to clipboard');
+}
+
+function cutFile(path) {
+    setClipboard(path, 'cut');
+    hideFileOptionsMenu();
+    alert('File cut to clipboard');
+}
+
+function pasteFile(targetDir) {
+    const clipboard = getClipboard();
+    if (!clipboard) {
+        alert('Nothing in clipboard');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('source_path', clipboard.filepath);
+    formData.append('target_dir', targetDir || '');
+    formData.append('operation', clipboard.operation);
+    
+    fetch('/paste', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            if (clipboard.operation === 'cut') {
+                clearClipboard();
+            }
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error pasting: ' + error);
+    });
+    hideFileOptionsMenu();
+}
+
+function moveFile(path) {
+    const modal = document.getElementById('move-modal');
+    const filepathInput = document.getElementById('move-filepath');
+    const targetInput = document.getElementById('move-target-input');
+    
+    if (modal && filepathInput && targetInput) {
+        filepathInput.value = path;
+        targetInput.value = '';
+        modal.classList.add('show');
+    }
+    hideFileOptionsMenu();
+}
+
+// Initialize file options menu
+document.addEventListener('DOMContentLoaded', function() {
+    // File options menu handlers
+    const optRename = document.getElementById('opt-rename');
+    const optCopy = document.getElementById('opt-copy');
+    const optCut = document.getElementById('opt-cut');
+    const optPaste = document.getElementById('opt-paste');
+    const optMove = document.getElementById('opt-move');
+    const optDelete = document.getElementById('opt-delete');
+    
+    if (optRename) {
+        optRename.addEventListener('click', function() {
+            renameFile(currentFileOptionsPath);
+        });
+    }
+    
+    if (optCopy) {
+        optCopy.addEventListener('click', function() {
+            copyFile(currentFileOptionsPath);
+        });
+    }
+    
+    if (optCut) {
+        optCut.addEventListener('click', function() {
+            cutFile(currentFileOptionsPath);
+        });
+    }
+    
+    if (optPaste) {
+        optPaste.addEventListener('click', function() {
+            const container = document.getElementById('file-list-container');
+            const currentPath = container ? container.dataset.currentPath || '' : '';
+            pasteFile(currentPath);
+        });
+    }
+    
+    if (optMove) {
+        optMove.addEventListener('click', function() {
+            moveFile(currentFileOptionsPath);
+        });
+    }
+    
+    if (optDelete) {
+        optDelete.addEventListener('click', function() {
+            deleteFileOrFolder(currentFileOptionsPath);
+            hideFileOptionsMenu();
+        });
+    }
+    
+    // Hide menu on click outside
+    document.addEventListener('click', function() {
+        hideFileOptionsMenu();
+    });
+    
+    // Rename form handler
+    const renameForm = document.getElementById('rename-form');
+    if (renameForm) {
+        renameForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(renameForm);
+            
+            fetch('/rename', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    closeModal('rename-modal');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error renaming: ' + error);
+            });
+        });
+    }
+    
+    // Move form handler
+    const moveForm = document.getElementById('move-form');
+    if (moveForm) {
+        moveForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(moveForm);
+            
+            fetch('/move', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    closeModal('move-modal');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error moving: ' + error);
+            });
+        });
+    }
+    
+    // Update clipboard indicator on load
+    updateClipboardIndicator();
+    
+    // Add paste option to context menu
+    const ctxPaste = document.getElementById('ctx-paste');
+    if (ctxPaste) {
+        ctxPaste.addEventListener('click', function() {
+            const container = document.getElementById('file-list-container');
+            const currentPath = container ? container.dataset.currentPath || '' : '';
+            pasteFile(currentPath);
+        });
+    }
+    
+    // Update context menu paste visibility
+    const updateContextMenu = function() {
+        const clipboard = getClipboard();
+        if (ctxPaste) {
+            ctxPaste.style.display = clipboard ? 'block' : 'none';
+        }
+    };
+    updateContextMenu();
+    setInterval(updateContextMenu, 500);
+});

@@ -8,9 +8,10 @@ import os
 import urllib.parse
 import mimetypes
 from datetime import datetime
-from flask import Flask, render_template, send_file, abort, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, send_file, abort, request, jsonify, redirect, url_for, flash, session
 from werkzeug.utils import secure_filename
 import shutil
+import json
 from pathlib import Path
 from dotenv import load_dotenv
 import mysql.connector
@@ -442,6 +443,214 @@ def delete_file():
             # Delete file
             os.remove(full_path)
             return jsonify({'success': True, 'message': 'File deleted successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/rename', methods=['POST'])
+def rename_file():
+    """Rename a file or folder."""
+    filepath = request.form.get('filepath', '')
+    new_name = request.form.get('new_name', '').strip()
+    
+    if not filepath or not new_name:
+        return jsonify({'error': 'File path and new name are required'}), 400
+    
+    # Decode URL-encoded path
+    filepath = urllib.parse.unquote(filepath)
+    
+    # Construct full path
+    full_path = os.path.join(ROOT_DIRECTORY, filepath)
+    
+    # Security check
+    if not is_safe_path(ROOT_DIRECTORY, full_path):
+        return jsonify({'error': 'Invalid path'}), 403
+    
+    # Check if path exists
+    if not os.path.exists(full_path):
+        return jsonify({'error': 'File or folder does not exist'}), 404
+    
+    try:
+        # Get parent directory
+        parent_dir = os.path.dirname(full_path)
+        new_path = os.path.join(parent_dir, secure_filename(new_name))
+        
+        # Check if new name already exists
+        if os.path.exists(new_path):
+            return jsonify({'error': 'A file or folder with that name already exists'}), 400
+        
+        # Rename
+        os.rename(full_path, new_path)
+        return jsonify({'success': True, 'message': 'Renamed successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/copy', methods=['POST'])
+def copy_file():
+    """Copy a file or folder to clipboard (store in session)."""
+    filepath = request.form.get('filepath', '')
+    
+    if not filepath:
+        return jsonify({'error': 'File path is required'}), 400
+    
+    # Decode URL-encoded path
+    filepath = urllib.parse.unquote(filepath)
+    
+    # Construct full path
+    full_path = os.path.join(ROOT_DIRECTORY, filepath)
+    
+    # Security check
+    if not is_safe_path(ROOT_DIRECTORY, full_path):
+        return jsonify({'error': 'Invalid path'}), 403
+    
+    # Check if path exists
+    if not os.path.exists(full_path):
+        return jsonify({'error': 'File or folder does not exist'}), 404
+    
+    # Store in session (we'll use a simple in-memory store for this)
+    # In production, you might want to use Flask sessions
+    return jsonify({
+        'success': True, 
+        'message': 'Copied to clipboard',
+        'filepath': filepath,
+        'operation': 'copy'
+    })
+
+
+@app.route('/cut', methods=['POST'])
+def cut_file():
+    """Cut a file or folder to clipboard (store in session)."""
+    filepath = request.form.get('filepath', '')
+    
+    if not filepath:
+        return jsonify({'error': 'File path is required'}), 400
+    
+    # Decode URL-encoded path
+    filepath = urllib.parse.unquote(filepath)
+    
+    # Construct full path
+    full_path = os.path.join(ROOT_DIRECTORY, filepath)
+    
+    # Security check
+    if not is_safe_path(ROOT_DIRECTORY, full_path):
+        return jsonify({'error': 'Invalid path'}), 403
+    
+    # Check if path exists
+    if not os.path.exists(full_path):
+        return jsonify({'error': 'File or folder does not exist'}), 404
+    
+    return jsonify({
+        'success': True, 
+        'message': 'Cut to clipboard',
+        'filepath': filepath,
+        'operation': 'cut'
+    })
+
+
+@app.route('/paste', methods=['POST'])
+def paste_file():
+    """Paste a copied or cut file/folder to target directory."""
+    source_path = request.form.get('source_path', '')
+    target_dir = request.form.get('target_dir', '')
+    operation = request.form.get('operation', 'copy')  # 'copy' or 'cut'
+    
+    if not source_path:
+        return jsonify({'error': 'Source path is required'}), 400
+    
+    # Decode URL-encoded paths
+    source_path = urllib.parse.unquote(source_path)
+    if target_dir:
+        target_dir = urllib.parse.unquote(target_dir)
+    
+    # Construct paths
+    source_full = os.path.join(ROOT_DIRECTORY, source_path)
+    if target_dir:
+        target_full = os.path.join(ROOT_DIRECTORY, target_dir)
+    else:
+        target_full = ROOT_DIRECTORY
+    
+    # Security checks
+    if not is_safe_path(ROOT_DIRECTORY, source_full):
+        return jsonify({'error': 'Invalid source path'}), 403
+    if not is_safe_path(ROOT_DIRECTORY, target_full):
+        return jsonify({'error': 'Invalid target directory'}), 403
+    
+    # Check if source exists
+    if not os.path.exists(source_full):
+        return jsonify({'error': 'Source file or folder does not exist'}), 404
+    
+    # Check if target is a directory
+    if not os.path.isdir(target_full):
+        return jsonify({'error': 'Target is not a directory'}), 400
+    
+    try:
+        # Get filename/foldername
+        item_name = os.path.basename(source_full)
+        dest_path = os.path.join(target_full, item_name)
+        
+        # Check if destination already exists
+        if os.path.exists(dest_path):
+            return jsonify({'error': 'A file or folder with that name already exists in the destination'}), 400
+        
+        if operation == 'cut':
+            # Move (rename)
+            shutil.move(source_full, dest_path)
+            return jsonify({'success': True, 'message': 'Moved successfully'})
+        else:
+            # Copy
+            if os.path.isdir(source_full):
+                shutil.copytree(source_full, dest_path)
+            else:
+                shutil.copy2(source_full, dest_path)
+            return jsonify({'success': True, 'message': 'Copied successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/move', methods=['POST'])
+def move_file():
+    """Move a file or folder to a new location."""
+    filepath = request.form.get('filepath', '')
+    target_dir = request.form.get('target_dir', '')
+    
+    if not filepath or not target_dir:
+        return jsonify({'error': 'File path and target directory are required'}), 400
+    
+    # Decode URL-encoded paths
+    filepath = urllib.parse.unquote(filepath)
+    target_dir = urllib.parse.unquote(target_dir)
+    
+    # Construct paths
+    source_full = os.path.join(ROOT_DIRECTORY, filepath)
+    target_full = os.path.join(ROOT_DIRECTORY, target_dir)
+    
+    # Security checks
+    if not is_safe_path(ROOT_DIRECTORY, source_full):
+        return jsonify({'error': 'Invalid source path'}), 403
+    if not is_safe_path(ROOT_DIRECTORY, target_full):
+        return jsonify({'error': 'Invalid target directory'}), 403
+    
+    # Check if source exists
+    if not os.path.exists(source_full):
+        return jsonify({'error': 'File or folder does not exist'}), 404
+    
+    # Check if target is a directory
+    if not os.path.isdir(target_full):
+        return jsonify({'error': 'Target is not a directory'}), 400
+    
+    try:
+        # Get filename/foldername
+        item_name = os.path.basename(source_full)
+        dest_path = os.path.join(target_full, item_name)
+        
+        # Check if destination already exists
+        if os.path.exists(dest_path):
+            return jsonify({'error': 'A file or folder with that name already exists in the destination'}), 400
+        
+        # Move
+        shutil.move(source_full, dest_path)
+        return jsonify({'success': True, 'message': 'Moved successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

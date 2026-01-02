@@ -14,7 +14,7 @@
             <div class="title-bar-controls">
                 <button aria-label="Minimize"></button>
                 <button aria-label="Maximize"></button>
-                <button aria-label="Close"></button>
+                <button style="color: red;" aria-label="Close" onclick="closeApplication()">×</button>
             </div>
         </div>
 
@@ -26,6 +26,10 @@
                     <div class="menu-item-option" onclick="window.location.href='/'">Go to Home</div>
                     <div class="menu-item-option" onclick="window.history.back()">Go Back</div>
                     <div class="menu-item-option" onclick="window.history.forward()">Go Forward</div>
+                    <div class="menu-separator"></div>
+                    <div class="menu-item-option" onclick="showCreateFileModal()">Create File</div>
+                    <div class="menu-item-option" onclick="showCreateFolderModal()">Create Folder</div>
+                    <div class="menu-item-option" onclick="showUploadModal()">Upload File</div>
                     <div class="menu-separator"></div>
                     <div class="menu-item-option" onclick="window.location.reload()">Refresh</div>
                 </div>
@@ -40,8 +44,8 @@
             <div class="menu-item">
                 <button class="menu-button" id="view-menu-btn">View</button>
                 <div class="menu-dropdown" id="view-menu">
-                    <div class="menu-item-option" onclick="toggleView('details')">Details</div>
-                    <div class="menu-item-option" onclick="toggleView('icons')">Icons</div>
+                    <div class="menu-item-option" onclick="setViewMode('list')" id="view-list-option">List View</div>
+                    <div class="menu-item-option" onclick="setViewMode('grid')" id="view-grid-option">Grid View</div>
                     <div class="menu-separator"></div>
                     <div class="menu-item-option" onclick="showHiddenFiles()">Show Hidden Files</div>
                 </div>
@@ -86,7 +90,8 @@
 
         <!-- File List Container -->
         <div class="file-list-container" id="file-list-container" data-current-path="{{ current_path }}">
-            <table class="file-list">
+            <!-- List View -->
+            <table class="file-list" id="list-view">
                 <thead>
                     <tr>
                         <th class="col-name">Name</th>
@@ -101,6 +106,7 @@
                         <td class="col-name">
                             <span class="file-icon folder-icon">📁</span>
                             <span class="file-name">..</span>
+                            <button class="file-options-btn" style="visibility: hidden;" title="Options">⋯</button>
                         </td>
                         <td class="col-type">Folder</td>
                         <td class="col-size">-</td>
@@ -119,13 +125,20 @@
                             {% if item.is_dir %}
                                 <span class="file-icon folder-icon">📁</span>
                             {% elif item.is_image %}
-                                <span class="file-icon file-icon">🖼️</span>
+                                <img src="{{ url_for('preview', filepath=item.relative_path) }}" 
+                                     alt="{{ item.name }}" 
+                                     class="file-thumbnail"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                                <span class="file-icon file-icon" style="display: none;">🖼️</span>
                             {% elif item.is_video %}
                                 <span class="file-icon file-icon">🎬</span>
                             {% else %}
                                 <span class="file-icon file-icon">📄</span>
                             {% endif %}
                             <span class="file-name">{{ item.name }}</span>
+                            <button class="file-options-btn" 
+                                    onclick="event.stopPropagation(); showFileOptions(event, '{{ item.relative_path }}', {{ 'true' if item.is_dir else 'false' }})"
+                                    title="Options">⋯</button>
                         </td>
                         <td class="col-type">{{ 'Folder' if item.is_dir else ('Image' if item.is_image else ('Video' if item.is_video else 'File')) }}</td>
                         <td class="col-size">{{ item.size }}</td>
@@ -140,6 +153,43 @@
                     {% endif %}
                 </tbody>
             </table>
+            
+            <!-- Grid View -->
+            <div class="file-grid" id="grid-view" style="display: none;">
+                {% if current_path %}
+                <div class="grid-item folder" onclick="window.location.href='{{ url_for('explorer', subpath='') }}'">
+                    <div class="grid-icon">📁</div>
+                    <div class="grid-name">..</div>
+                </div>
+                {% endif %}
+                
+                {% for item in items %}
+                <div class="grid-item {% if item.is_dir %}folder{% else %}file{% endif %}" 
+                     data-path="{{ item.relative_path }}"
+                     data-is-dir="{{ 'true' if item.is_dir else 'false' }}"
+                     data-is-media="{{ 'true' if item.is_media else 'false' }}"
+                     onclick="handleFileClick(event, '{{ item.relative_path }}', {{ 'true' if item.is_dir else 'false' }}, {{ 'true' if item.is_media else 'false' }})"
+                     oncontextmenu="event.preventDefault(); showContextMenu(event, '{{ item.relative_path }}', {{ 'true' if item.is_dir else 'false' }})">
+                    {% if item.is_dir %}
+                        <div class="grid-icon">📁</div>
+                    {% elif item.is_image %}
+                        <img src="{{ url_for('preview', filepath=item.relative_path) }}" 
+                             alt="{{ item.name }}" 
+                             class="grid-thumbnail"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="grid-icon" style="display: none;">🖼️</div>
+                    {% elif item.is_video %}
+                        <div class="grid-icon">🎬</div>
+                    {% else %}
+                        <div class="grid-icon">📄</div>
+                    {% endif %}
+                    <div class="grid-name">{{ item.name }}</div>
+                    <button class="grid-options-btn" 
+                            onclick="event.stopPropagation(); showFileOptions(event, '{{ item.relative_path }}', {{ 'true' if item.is_dir else 'false' }})"
+                            title="Options">⋯</button>
+                </div>
+                {% endfor %}
+            </div>
         </div>
 
         <!-- Status Bar -->
@@ -235,6 +285,29 @@
         </div>
     </div>
 
+    <!-- File Options Menu -->
+    <div id="file-options-menu" class="context-menu">
+        <div class="context-menu-item" id="opt-rename">
+            <span class="ctx-icon">✏️</span> Rename
+        </div>
+        <div class="context-menu-item" id="opt-copy">
+            <span class="ctx-icon">📋</span> Copy
+        </div>
+        <div class="context-menu-item" id="opt-cut">
+            <span class="ctx-icon">✂️</span> Cut
+        </div>
+        <div class="context-menu-item" id="opt-paste" style="display: none;">
+            <span class="ctx-icon">📄</span> Paste
+        </div>
+        <div class="context-menu-item" id="opt-move">
+            <span class="ctx-icon">📦</span> Move
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" id="opt-delete">
+            <span class="ctx-icon">🗑️</span> Delete
+        </div>
+    </div>
+
     <!-- Context Menu -->
     <div id="context-menu" class="context-menu">
         <div class="context-menu-item" id="ctx-upload-file">
@@ -247,6 +320,9 @@
             <span class="ctx-icon">📁</span> Create Folder
         </div>
         <div class="context-menu-separator" id="ctx-separator-1"></div>
+        <div class="context-menu-item" id="ctx-paste" style="display: none;">
+            <span class="ctx-icon">📄</span> Paste
+        </div>
         <div class="context-menu-item" id="ctx-delete" style="display: none;">
             <span class="ctx-icon">🗑️</span> Delete
         </div>
@@ -323,6 +399,59 @@
                 </form>
             </div>
         </div>
+    </div>
+
+    <!-- Rename Modal -->
+    <div id="rename-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-title-bar">
+                <div class="modal-title-text">Rename</div>
+                <button class="modal-close" onclick="closeModal('rename-modal')" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="rename-form">
+                    <input type="hidden" id="rename-filepath" name="filepath">
+                    <div class="form-group">
+                        <label for="rename-input" class="form-label">New Name:</label>
+                        <input type="text" id="rename-input" name="new_name" class="form-input" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="button-primary">Rename</button>
+                        <button type="button" class="button-secondary" onclick="closeModal('rename-modal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Move Modal -->
+    <div id="move-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-title-bar">
+                <div class="modal-title-text">Move</div>
+                <button class="modal-close" onclick="closeModal('move-modal')" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="move-form">
+                    <input type="hidden" id="move-filepath" name="filepath">
+                    <div class="form-group">
+                        <label for="move-target-input" class="form-label">Target Directory (relative path):</label>
+                        <input type="text" id="move-target-input" name="target_dir" class="form-input" placeholder="folder/subfolder">
+                        <small style="font-size: 10px; color: #606060;">Leave empty for root, or enter relative path</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="button-primary">Move</button>
+                        <button type="button" class="button-secondary" onclick="closeModal('move-modal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clipboard Indicator -->
+    <div id="clipboard-indicator" class="clipboard-indicator" style="display: none;">
+        <span id="clipboard-text"></span>
+        <button onclick="clearClipboard()" class="clipboard-clear">×</button>
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
