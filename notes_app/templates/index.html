@@ -426,21 +426,29 @@
 
     <!-- Move Modal -->
     <div id="move-modal" class="modal">
-        <div class="modal-content modal-small">
+        <div class="modal-content" style="min-width: 600px; max-width: 800px;">
             <div class="modal-title-bar">
-                <div class="modal-title-text">Move</div>
+                <div class="modal-title-text">Move to Folder</div>
                 <button class="modal-close" onclick="closeModal('move-modal')" aria-label="Close">×</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 10px;">
                 <form id="move-form">
                     <input type="hidden" id="move-filepath" name="filepath">
-                    <div class="form-group">
-                        <label for="move-target-input" class="form-label">Target Directory (relative path):</label>
-                        <input type="text" id="move-target-input" name="target_dir" class="form-input" placeholder="folder/subfolder">
-                        <small style="font-size: 10px; color: #606060;">Leave empty for root, or enter relative path</small>
+                    <input type="hidden" id="move-target-dir" name="target_dir" value="">
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label class="form-label">Select Destination Folder:</label>
+                        <div style="background: #c0c0c0; border: 1px inset #c0c0c0; padding: 4px; margin-bottom: 8px; font-size: 11px;">
+                            <span id="move-current-path">/</span>
+                        </div>
+                        <div id="move-folder-browser" style="background: white; border: 1px inset #c0c0c0; height: 300px; overflow-y: auto; padding: 4px;">
+                            <div style="text-align: center; padding: 20px; color: #808080;">Loading...</div>
+                        </div>
                     </div>
                     <div class="form-actions">
-                        <button type="submit" class="button-primary">Move</button>
+                        <button type="button" class="button-secondary" onclick="moveBrowserGoUp()" id="move-browser-up" style="display: none;">↑ Up</button>
+                        <button type="button" class="button-secondary" onclick="moveBrowserGoHome()">🏠 Home</button>
+                        <div style="flex: 1;"></div>
+                        <button type="submit" class="button-primary" id="move-submit-btn" disabled>Move Here</button>
                         <button type="button" class="button-secondary" onclick="closeModal('move-modal')">Cancel</button>
                     </div>
                 </form>

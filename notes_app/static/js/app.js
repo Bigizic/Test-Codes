@@ -18,6 +18,10 @@ function showNotification(message, type = 'info', duration = 5000) {
     const container = document.getElementById('notification-container');
     if (!container) return;
     
+    // Remove existing notifications to show only one at a time in center
+    const existingNotifications = container.querySelectorAll('.notification');
+    existingNotifications.forEach(notif => notif.remove());
+    
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     
@@ -68,6 +72,10 @@ function showNotification(message, type = 'info', duration = 5000) {
 function showProgressNotification(message, operation = 'upload') {
     const container = document.getElementById('notification-container');
     if (!container) return null;
+    
+    // Remove existing notifications to show only one at a time in center
+    const existingNotifications = container.querySelectorAll('.notification');
+    existingNotifications.forEach(notif => notif.remove());
     
     const notification = document.createElement('div');
     notification.className = `notification progress ${operation}`;
@@ -144,24 +152,7 @@ function showProgressNotification(message, operation = 'upload') {
     };
 }
 
-// Add slideOut animation to CSS dynamically
-if (!document.getElementById('notification-styles')) {
-    const style = document.createElement('style');
-    style.id = 'notification-styles';
-    style.textContent = `
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-}
+// Notification animations are defined in CSS
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeMenus();
@@ -343,20 +334,32 @@ function previewFile(filepath, isImage, isVideo) {
         previewImage.src = '/preview/' + encodeURIComponent(filepath);
         previewImage.style.display = 'block';
         previewImage.onerror = function() {
-            // Only handle error once
-            this.onerror = null;
-            showNotification('Failed to load image preview: ' + filename, 'error');
-            closePreview();
+            // Only handle error once - don't show error if we're just closing
+            if (currentPreviewPath === filepath) {
+                this.onerror = null;
+                // Only show error if the preview modal is still open
+                const modal = document.getElementById('preview-modal');
+                if (modal && modal.classList.contains('show')) {
+                    showNotification('Failed to load image preview: ' + filename, 'error');
+                    closePreview();
+                }
+            }
         };
     } else if (isVideo) {
         previewVideo.src = '/preview/' + encodeURIComponent(filepath);
         previewVideo.style.display = 'block';
         previewVideo.load();
         previewVideo.onerror = function() {
-            // Only handle error once
-            this.onerror = null;
-            showNotification('Failed to load video preview: ' + filename, 'error');
-            closePreview();
+            // Only handle error once - don't show error if we're just closing
+            if (currentPreviewPath === filepath) {
+                this.onerror = null;
+                // Only show error if the preview modal is still open
+                const modal = document.getElementById('preview-modal');
+                if (modal && modal.classList.contains('show')) {
+                    showNotification('Failed to load video preview: ' + filename, 'error');
+                    closePreview();
+                }
+            }
         };
     }
     
@@ -371,11 +374,20 @@ function closePreview() {
     const previewImage = document.getElementById('preview-image');
     const previewVideo = document.getElementById('preview-video');
     
-    modal.classList.remove('show');
-    previewImage.src = '';
-    previewVideo.src = '';
-    previewVideo.pause();
+    // Clear the current preview path first to prevent error handlers from firing
     currentPreviewPath = '';
+    
+    // Remove error handlers before clearing src
+    previewImage.onerror = null;
+    previewVideo.onerror = null;
+    
+    modal.classList.remove('show');
+    previewVideo.pause();
+    // Clear src after a small delay to prevent error events
+    setTimeout(() => {
+        previewImage.src = '';
+        previewVideo.src = '';
+    }, 100);
 }
 
 /**
@@ -965,17 +977,153 @@ function pasteFile(targetDir) {
     hideFileOptionsMenu();
 }
 
+// Move browser state
+let moveBrowserCurrentPath = '';
+let moveBrowserSelectedPath = '';
+
 function moveFile(path) {
     const modal = document.getElementById('move-modal');
     const filepathInput = document.getElementById('move-filepath');
-    const targetInput = document.getElementById('move-target-input');
     
-    if (modal && filepathInput && targetInput) {
+    if (modal && filepathInput) {
         filepathInput.value = path;
-        targetInput.value = '';
+        
+        // Get current directory from the page
+        const container = document.getElementById('file-list-container');
+        const currentPath = container ? container.dataset.currentPath || '' : '';
+        moveBrowserCurrentPath = currentPath;
+        moveBrowserSelectedPath = '';
+        
+        // Load the browser with current directory
+        loadMoveBrowser(currentPath);
+        
+        // Reset UI
+        const submitBtn = document.getElementById('move-submit-btn');
+        if (submitBtn) submitBtn.disabled = true;
+        
         modal.classList.add('show');
     }
     hideFileOptionsMenu();
+}
+
+function loadMoveBrowser(path) {
+    const browser = document.getElementById('move-folder-browser');
+    const pathDisplay = document.getElementById('move-current-path');
+    const upButton = document.getElementById('move-browser-up');
+    
+    if (!browser) return;
+    
+    browser.innerHTML = '<div style="text-align: center; padding: 20px; color: #808080;">Loading...</div>';
+    
+    // Build URL for explorer route
+    let url = '/explorer';
+    if (path) {
+        url += '/' + encodeURIComponent(path);
+    }
+    
+    // Fetch the directory contents
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            // Parse the HTML to extract folder items
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const fileItems = doc.querySelectorAll('.file-item[data-is-dir="true"]');
+            
+            browser.innerHTML = '';
+            
+            // Add ".." (parent) option if not at root
+            if (path) {
+                const parentItem = document.createElement('div');
+                parentItem.className = 'move-browser-item';
+                parentItem.innerHTML = '<span class="move-browser-icon">📁</span><span class="move-browser-name">.. (Parent)</span>';
+                parentItem.onclick = () => {
+                    const pathParts = path.split('/').filter(p => p);
+                    pathParts.pop();
+                    const newPath = pathParts.join('/');
+                    loadMoveBrowser(newPath);
+                };
+                browser.appendChild(parentItem);
+            }
+            
+            // Add "Select Current Folder" option at the top
+            const selectCurrentItem = document.createElement('div');
+            selectCurrentItem.className = 'move-browser-item';
+            selectCurrentItem.style.background = '#e8f4f8';
+            selectCurrentItem.style.fontWeight = 'bold';
+            selectCurrentItem.innerHTML = '<span class="move-browser-icon">✓</span><span class="move-browser-name">Select This Folder</span>';
+            selectCurrentItem.onclick = () => {
+                browser.querySelectorAll('.move-browser-item').forEach(i => i.classList.remove('selected'));
+                selectCurrentItem.classList.add('selected');
+                moveBrowserSelectedPath = path || '';
+                const submitBtn = document.getElementById('move-submit-btn');
+                if (submitBtn) submitBtn.disabled = false;
+            };
+            browser.appendChild(selectCurrentItem);
+            
+            // Add separator
+            const separator = document.createElement('div');
+            separator.style.height = '1px';
+            separator.style.background = '#808080';
+            separator.style.margin = '4px 0';
+            browser.appendChild(separator);
+            
+            // Add folders from the directory
+            fileItems.forEach(item => {
+                const itemPath = item.dataset.path;
+                const itemName = item.dataset.name || itemPath.split('/').pop();
+                
+                // Skip ".." if it exists
+                if (itemName === '..') return;
+                
+                const folderItem = document.createElement('div');
+                folderItem.className = 'move-browser-item';
+                folderItem.innerHTML = `<span class="move-browser-icon">📁</span><span class="move-browser-name">${itemName}</span>`;
+                folderItem.onclick = () => {
+                    // Navigate into folder
+                    loadMoveBrowser(itemPath);
+                };
+                browser.appendChild(folderItem);
+            });
+            
+            // Update path display
+            if (pathDisplay) {
+                pathDisplay.textContent = path ? '/' + path : '/';
+            }
+            
+            // Show/hide up button
+            if (upButton) {
+                upButton.style.display = path ? 'inline-block' : 'none';
+            }
+        })
+        .catch(error => {
+            browser.innerHTML = '<div style="text-align: center; padding: 20px; color: #800000;">Error loading directory: ' + error + '</div>';
+        });
+    
+    moveBrowserCurrentPath = path;
+}
+
+function moveBrowserGoUp() {
+    if (moveBrowserCurrentPath) {
+        const pathParts = moveBrowserCurrentPath.split('/').filter(p => p);
+        pathParts.pop();
+        const newPath = pathParts.join('/');
+        loadMoveBrowser(newPath);
+        // Clear selection when navigating
+        moveBrowserSelectedPath = '';
+        const submitBtn = document.getElementById('move-submit-btn');
+        if (submitBtn) submitBtn.disabled = true;
+        document.getElementById('move-folder-browser').querySelectorAll('.move-browser-item').forEach(i => i.classList.remove('selected'));
+    }
+}
+
+function moveBrowserGoHome() {
+    loadMoveBrowser('');
+    // Clear selection when navigating
+    moveBrowserSelectedPath = '';
+    const submitBtn = document.getElementById('move-submit-btn');
+    if (submitBtn) submitBtn.disabled = true;
+    document.getElementById('move-folder-browser').querySelectorAll('.move-browser-item').forEach(i => i.classList.remove('selected'));
 }
 
 // Initialize file options menu
@@ -1065,6 +1213,12 @@ document.addEventListener('DOMContentLoaded', function() {
         moveForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(moveForm);
+            
+            // Use the selected path from browser
+            const targetDirInput = document.getElementById('move-target-dir');
+            if (targetDirInput) {
+                targetDirInput.value = moveBrowserSelectedPath || '';
+            }
             
             fetch('/move', {
                 method: 'POST',
