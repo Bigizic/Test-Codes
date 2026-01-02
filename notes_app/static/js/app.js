@@ -6,6 +6,163 @@
 let currentPreviewPath = '';
 let currentPreviewIsImage = false;
 
+// ==================== NOTIFICATION SYSTEM ====================
+
+/**
+ * Show a Windows-style notification
+ * @param {string} message - The message to display
+ * @param {string} type - 'info', 'success', 'error' (default: 'info')
+ * @param {number} duration - Auto-close duration in ms (0 = no auto-close, default: 5000)
+ */
+function showNotification(message, type = 'info', duration = 5000) {
+    const container = document.getElementById('notification-container');
+    if (!container) return;
+    
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    const header = document.createElement('div');
+    header.className = 'notification-header';
+    
+    const title = document.createElement('div');
+    title.className = 'notification-title';
+    title.textContent = type === 'error' ? 'Error' : type === 'success' ? 'Success' : 'Information';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'notification-close';
+    closeBtn.innerHTML = '×';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.onclick = () => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    };
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    
+    const body = document.createElement('div');
+    body.className = 'notification-body';
+    body.textContent = message;
+    
+    notification.appendChild(header);
+    notification.appendChild(body);
+    container.appendChild(notification);
+    
+    // Auto-close after duration
+    if (duration > 0) {
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, duration);
+    }
+}
+
+/**
+ * Show a progress notification with progress bar
+ * @param {string} message - The message to display
+ * @param {string} operation - 'upload' or 'paste'
+ * @returns {Object} - Object with updateProgress and close methods
+ */
+function showProgressNotification(message, operation = 'upload') {
+    const container = document.getElementById('notification-container');
+    if (!container) return null;
+    
+    const notification = document.createElement('div');
+    notification.className = `notification progress ${operation}`;
+    
+    const header = document.createElement('div');
+    header.className = 'notification-header';
+    
+    const title = document.createElement('div');
+    title.className = 'notification-title';
+    title.textContent = operation === 'upload' ? 'Uploading...' : 'Pasting...';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'notification-close';
+    closeBtn.innerHTML = '×';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.onclick = () => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+    };
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    
+    const body = document.createElement('div');
+    body.className = 'notification-body';
+    body.textContent = message;
+    
+    const progressContainer = document.createElement('div');
+    progressContainer.className = `progress-bar-container ${operation}`;
+    
+    const progressFill = document.createElement('div');
+    progressFill.className = 'progress-bar-fill';
+    progressFill.style.width = '0%';
+    progressFill.textContent = '0%';
+    
+    const progressText = document.createElement('div');
+    progressText.className = 'progress-bar-text';
+    progressText.textContent = 'Starting...';
+    
+    progressContainer.appendChild(progressFill);
+    body.appendChild(progressContainer);
+    body.appendChild(progressText);
+    
+    notification.appendChild(header);
+    notification.appendChild(body);
+    container.appendChild(notification);
+    
+    return {
+        updateProgress: (percent, statusText = '') => {
+            const percentValue = Math.min(100, Math.max(0, percent));
+            progressFill.style.width = percentValue + '%';
+            progressFill.textContent = Math.round(percentValue) + '%';
+            if (statusText) {
+                progressText.textContent = statusText;
+            }
+        },
+        close: () => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        },
+        complete: (message, isSuccess = true) => {
+            title.textContent = isSuccess ? 'Complete' : 'Error';
+            header.className = `notification-header ${isSuccess ? 'success' : 'error'}`;
+            progressFill.style.width = '100%';
+            progressFill.textContent = '100%';
+            progressText.textContent = message || (isSuccess ? 'Completed' : 'Failed');
+            if (isSuccess) {
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease-out';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+            }
+        }
+    };
+}
+
+// Add slideOut animation to CSS dynamically
+if (!document.getElementById('notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = `
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeMenus();
     initializeKeyboardShortcuts();
@@ -188,7 +345,7 @@ function previewFile(filepath, isImage, isVideo) {
         previewImage.onerror = function() {
             // Only handle error once
             this.onerror = null;
-            alert('Failed to load image preview: ' + filename);
+            showNotification('Failed to load image preview: ' + filename, 'error');
             closePreview();
         };
     } else if (isVideo) {
@@ -198,7 +355,7 @@ function previewFile(filepath, isImage, isVideo) {
         previewVideo.onerror = function() {
             // Only handle error once
             this.onerror = null;
-            alert('Failed to load video preview: ' + filename);
+            showNotification('Failed to load video preview: ' + filename, 'error');
             closePreview();
         };
     }
@@ -269,7 +426,7 @@ function copyPath() {
     // Try to copy to clipboard
     if (navigator.clipboard) {
         navigator.clipboard.writeText(pathToCopy).then(() => {
-            alert('Path copied to clipboard!');
+            // No notification for copy operations as per requirements
         }).catch(() => {
             // Fallback for older browsers
             prompt('Copy this path:', pathToCopy);
@@ -339,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function showHiddenFiles() {
     // This would require backend changes to show hidden files
-    alert('Hidden files feature - modify app.py to show files starting with "."');
+    showNotification('Hidden files feature - modify app.py to show files starting with "."', 'info');
     document.querySelectorAll('.menu-item').forEach(item => {
         item.classList.remove('active');
     });
@@ -517,23 +674,60 @@ function handleUpload(e) {
     e.preventDefault();
     const form = e.target;
     const formData = new FormData(form);
+    const fileInput = form.querySelector('#file-input');
+    const file = fileInput ? fileInput.files[0] : null;
     
-    fetch('/upload', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            window.location.reload();
-        } else {
-            alert('Error: ' + data.error);
+    if (!file) {
+        showNotification('No file selected', 'error');
+        return;
+    }
+    
+    const progressNotif = showProgressNotification(`Uploading: ${file.name}`, 'upload');
+    if (!progressNotif) {
+        showNotification('Failed to initialize progress notification', 'error');
+        return;
+    }
+    
+    const xhr = new XMLHttpRequest();
+    
+    // Track upload progress
+    xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+            const percent = (e.loaded / e.total) * 100;
+            progressNotif.updateProgress(percent, `Uploading: ${Math.round(percent)}%`);
         }
-    })
-    .catch(error => {
-        alert('Error uploading file: ' + error);
     });
+    
+    xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+            try {
+                const data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                    progressNotif.complete(data.message, true);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    progressNotif.complete('Error: ' + data.error, false);
+                }
+            } catch (error) {
+                progressNotif.complete('Error parsing response: ' + error, false);
+            }
+        } else {
+            progressNotif.complete('Upload failed with status: ' + xhr.status, false);
+        }
+    });
+    
+    xhr.addEventListener('error', () => {
+        progressNotif.complete('Error uploading file', false);
+    });
+    
+    xhr.addEventListener('abort', () => {
+        progressNotif.complete('Upload cancelled', false);
+    });
+    
+    xhr.open('POST', '/upload');
+    xhr.send(formData);
 }
 
 function handleCreateFile(e) {
@@ -548,15 +742,15 @@ function handleCreateFile(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            showNotification(data.message, 'success');
             closeModal('create-file-modal');
             window.location.reload();
         } else {
-            alert('Error: ' + data.error);
+            showNotification('Error: ' + data.error, 'error');
         }
     })
     .catch(error => {
-        alert('Error creating file: ' + error);
+        showNotification('Error creating file: ' + error, 'error');
     });
 }
 
@@ -572,15 +766,15 @@ function handleCreateFolder(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            showNotification(data.message, 'success');
             closeModal('create-folder-modal');
             window.location.reload();
         } else {
-            alert('Error: ' + data.error);
+            showNotification('Error: ' + data.error, 'error');
         }
     })
     .catch(error => {
-        alert('Error creating folder: ' + error);
+        showNotification('Error creating folder: ' + error, 'error');
     });
 }
 
@@ -602,14 +796,14 @@ function deleteFileOrFolder(path) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            showNotification(data.message, 'success');
             window.location.reload();
         } else {
-            alert('Error: ' + data.error);
+            showNotification('Error: ' + data.error, 'error');
         }
     })
     .catch(error => {
-        alert('Error deleting: ' + error);
+        showNotification('Error deleting: ' + error, 'error');
     });
 }
 
@@ -706,19 +900,28 @@ function renameFile(path) {
 function copyFile(path) {
     setClipboard(path, 'copy');
     hideFileOptionsMenu();
-    alert('File copied to clipboard');
+    // No notification for copy operations as per requirements
 }
 
 function cutFile(path) {
     setClipboard(path, 'cut');
     hideFileOptionsMenu();
-    alert('File cut to clipboard');
+    // No notification for cut operations as per requirements
 }
 
 function pasteFile(targetDir) {
     const clipboard = getClipboard();
     if (!clipboard) {
-        alert('Nothing in clipboard');
+        showNotification('Nothing in clipboard', 'error');
+        return;
+    }
+    
+    const itemName = clipboard.filepath.split('/').pop();
+    const operation = clipboard.operation === 'cut' ? 'Moving' : 'Copying';
+    const progressNotif = showProgressNotification(`${operation}: ${itemName}`, 'paste');
+    
+    if (!progressNotif) {
+        showNotification('Failed to initialize progress notification', 'error');
         return;
     }
     
@@ -727,24 +930,37 @@ function pasteFile(targetDir) {
     formData.append('target_dir', targetDir || '');
     formData.append('operation', clipboard.operation);
     
+    // Simulate progress for paste operation
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress < 90) {
+            progressNotif.updateProgress(progress, `${operation} files...`);
+        }
+    }, 200);
+    
     fetch('/paste', {
         method: 'POST',
         body: formData
     })
     .then(response => response.json())
     .then(data => {
+        clearInterval(progressInterval);
         if (data.success) {
-            alert(data.message);
+            progressNotif.complete(data.message, true);
             if (clipboard.operation === 'cut') {
                 clearClipboard();
             }
-            window.location.reload();
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         } else {
-            alert('Error: ' + data.error);
+            progressNotif.complete('Error: ' + data.error, false);
         }
     })
     .catch(error => {
-        alert('Error pasting: ' + error);
+        clearInterval(progressInterval);
+        progressNotif.complete('Error pasting: ' + error, false);
     });
     hideFileOptionsMenu();
 }
@@ -830,15 +1046,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.message);
+                    showNotification(data.message, 'success');
                     closeModal('rename-modal');
                     window.location.reload();
                 } else {
-                    alert('Error: ' + data.error);
+                    showNotification('Error: ' + data.error, 'error');
                 }
             })
             .catch(error => {
-                alert('Error renaming: ' + error);
+                showNotification('Error renaming: ' + error, 'error');
             });
         });
     }
@@ -857,15 +1073,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.message);
+                    showNotification(data.message, 'success');
                     closeModal('move-modal');
                     window.location.reload();
                 } else {
-                    alert('Error: ' + data.error);
+                    showNotification('Error: ' + data.error, 'error');
                 }
             })
             .catch(error => {
-                alert('Error moving: ' + error);
+                showNotification('Error moving: ' + error, 'error');
             });
         });
     }
