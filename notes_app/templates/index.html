@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="window">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="title-bar-text">File Explorer</div>
+            <div class="title-bar-controls">
+                <button aria-label="Minimize"></button>
+                <button aria-label="Maximize"></button>
+                <button aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Menu Bar -->
+        <div class="menu-bar">
+            <div class="menu-item">
+                <button class="menu-button" id="file-menu-btn">File</button>
+                <div class="menu-dropdown" id="file-menu">
+                    <div class="menu-item-option" onclick="window.location.href='/'">Go to Home</div>
+                    <div class="menu-item-option" onclick="window.history.back()">Go Back</div>
+                    <div class="menu-item-option" onclick="window.history.forward()">Go Forward</div>
+                    <div class="menu-separator"></div>
+                    <div class="menu-item-option" onclick="window.location.reload()">Refresh</div>
+                </div>
+            </div>
+            <div class="menu-item">
+                <button class="menu-button" id="edit-menu-btn">Edit</button>
+                <div class="menu-dropdown" id="edit-menu">
+                    <div class="menu-item-option" onclick="selectAll()">Select All</div>
+                    <div class="menu-item-option" onclick="copyPath()">Copy Current Path</div>
+                </div>
+            </div>
+            <div class="menu-item">
+                <button class="menu-button" id="view-menu-btn">View</button>
+                <div class="menu-dropdown" id="view-menu">
+                    <div class="menu-item-option" onclick="toggleView('details')">Details</div>
+                    <div class="menu-item-option" onclick="toggleView('icons')">Icons</div>
+                    <div class="menu-separator"></div>
+                    <div class="menu-item-option" onclick="showHiddenFiles()">Show Hidden Files</div>
+                </div>
+            </div>
+            <div class="menu-item">
+                <button class="menu-button" id="help-menu-btn">Help</button>
+                <div class="menu-dropdown" id="help-menu">
+                    <div class="menu-item-option" onclick="showAbout()">About File Explorer</div>
+                    <div class="menu-item-option" onclick="showShortcuts()">Keyboard Shortcuts</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button class="toolbar-button" onclick="window.location.href='/'">
+                <span class="icon">🏠</span> Home
+            </button>
+            <button class="toolbar-button" onclick="window.history.back()">
+                <span class="icon">◀</span> Back
+            </button>
+            <button class="toolbar-button" onclick="window.history.forward()">
+                <span class="icon">▶</span> Forward
+            </button>
+        </div>
+
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb-container">
+            <nav class="breadcrumb">
+                {% for crumb in breadcrumbs %}
+                    {% if loop.last %}
+                        <span class="breadcrumb-item active">{{ crumb.name }}</span>
+                    {% else %}
+                        <a href="{{ url_for('explorer', subpath=crumb.path) }}" class="breadcrumb-item">
+                            {{ crumb.name }}
+                        </a>
+                        <span class="breadcrumb-separator">/</span>
+                    {% endif %}
+                {% endfor %}
+            </nav>
+        </div>
+
+        <!-- File List Container -->
+        <div class="file-list-container" id="file-list-container" data-current-path="{{ current_path }}">
+            <table class="file-list">
+                <thead>
+                    <tr>
+                        <th class="col-name">Name</th>
+                        <th class="col-type">Type</th>
+                        <th class="col-size">Size</th>
+                        <th class="col-modified">Modified</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if current_path %}
+                    <tr class="file-item" onclick="window.location.href='{{ url_for('explorer', subpath='') }}'">
+                        <td class="col-name">
+                            <span class="file-icon folder-icon">📁</span>
+                            <span class="file-name">..</span>
+                        </td>
+                        <td class="col-type">Folder</td>
+                        <td class="col-size">-</td>
+                        <td class="col-modified">-</td>
+                    </tr>
+                    {% endif %}
+                    
+                    {% for item in items %}
+                    <tr class="file-item {% if item.is_dir %}folder{% else %}file{% endif %}" 
+                        data-path="{{ item.relative_path }}"
+                        data-name="{{ item.name }}"
+                        data-is-dir="{{ 'true' if item.is_dir else 'false' }}"
+                        data-is-media="{{ 'true' if item.is_media else 'false' }}"
+                        onclick="handleFileClick(event, '{{ item.relative_path }}', {{ 'true' if item.is_dir else 'false' }}, {{ 'true' if item.is_media else 'false' }})">
+                        <td class="col-name">
+                            {% if item.is_dir %}
+                                <span class="file-icon folder-icon">📁</span>
+                            {% elif item.is_image %}
+                                <span class="file-icon file-icon">🖼️</span>
+                            {% elif item.is_video %}
+                                <span class="file-icon file-icon">🎬</span>
+                            {% else %}
+                                <span class="file-icon file-icon">📄</span>
+                            {% endif %}
+                            <span class="file-name">{{ item.name }}</span>
+                        </td>
+                        <td class="col-type">{{ 'Folder' if item.is_dir else ('Image' if item.is_image else ('Video' if item.is_video else 'File')) }}</td>
+                        <td class="col-size">{{ item.size }}</td>
+                        <td class="col-modified">{{ item.modified }}</td>
+                    </tr>
+                    {% endfor %}
+                    
+                    {% if not items and not current_path %}
+                    <tr>
+                        <td colspan="4" class="empty-message">No files or folders found.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-bar-field">
+                {% if items %}
+                    {{ items|length }} item{{ 's' if items|length != 1 else '' }}
+                {% else %}
+                    0 items
+                {% endif %}
+            </div>
+            <div class="status-bar-field">
+                {% if current_path %}
+                    {{ current_path }}
+                {% else %}
+                    {{ root_dir }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title-bar">
+                <div class="modal-title-text" id="preview-title">Preview</div>
+                <button class="modal-close" onclick="closePreview()" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="preview-container">
+                    <img id="preview-image" alt="Preview">
+                    <video id="preview-video" controls>
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="preview-actions">
+                    <button class="button-primary" onclick="downloadPreview()">Download</button>
+                    <button class="button-secondary" onclick="closePreview()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-title-bar">
+                <div class="modal-title-text">About File Explorer</div>
+                <button class="modal-close" onclick="closeModal('about-modal')" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Flask File Explorer</strong></p>
+                <p>A retro-styled file browser for local network access.</p>
+                <p>Version 1.0</p>
+                <p>Built with Flask and classic UI design.</p>
+                <button class="button-primary" onclick="closeModal('about-modal')">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shortcuts Modal -->
+    <div id="shortcuts-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-title-bar">
+                <div class="modal-title-text">Keyboard Shortcuts</div>
+                <button class="modal-close" onclick="closeModal('shortcuts-modal')" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-list">
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Enter</span>
+                        <span class="shortcut-desc">Open file/folder</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Backspace</span>
+                        <span class="shortcut-desc">Go to parent folder</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Home</span>
+                        <span class="shortcut-desc">Go to root directory</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">F5</span>
+                        <span class="shortcut-desc">Refresh</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Esc</span>
+                        <span class="shortcut-desc">Close preview/modal</span>
+                    </div>
+                </div>
+                <button class="button-primary" onclick="closeModal('shortcuts-modal')">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="context-menu" class="context-menu">
+        <div class="context-menu-item" id="ctx-upload-file">
+            <span class="ctx-icon">📤</span> Upload File
+        </div>
+        <div class="context-menu-item" id="ctx-create-file">
+            <span class="ctx-icon">📄</span> Create File
+        </div>
+        <div class="context-menu-item" id="ctx-create-folder">
+            <span class="ctx-icon">📁</span> Create Folder
+        </div>
+        <div class="context-menu-separator" id="ctx-separator-1"></div>
+        <div class="context-menu-item" id="ctx-delete" style="display: none;">
+            <span class="ctx-icon">🗑️</span> Delete
+        </div>
+    </div>
+
+    <!-- Upload File Modal -->
+    <div id="upload-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-title-bar">
+                <div class="modal-title-text">Upload File</div>
+                <button class="modal-close" onclick="closeModal('upload-modal')" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="upload-form" enctype="multipart/form-data">
+                    <input type="hidden" id="upload-directory" name="directory" value="{{ current_path }}">
+                    <div class="form-group">
+                        <label for="file-input" class="form-label">Select File:</label>
+                        <input type="file" id="file-input" name="file" class="form-input" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="button-primary">Upload</button>
+                        <button type="button" class="button-secondary" onclick="closeModal('upload-modal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create File Modal -->
+    <div id="create-file-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title-bar">
+                <div class="modal-title-text">Create New File</div>
+                <button class="modal-close" onclick="closeModal('create-file-modal')" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="create-file-form">
+                    <input type="hidden" id="create-file-directory" name="directory" value="{{ current_path }}">
+                    <div class="form-group">
+                        <label for="filename-input" class="form-label">Filename:</label>
+                        <input type="text" id="filename-input" name="filename" class="form-input" placeholder="example.txt" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="file-content-input" class="form-label">Content (optional):</label>
+                        <textarea id="file-content-input" name="content" class="form-textarea" rows="10" placeholder="File content..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="button-primary">Create</button>
+                        <button type="button" class="button-secondary" onclick="closeModal('create-file-modal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Folder Modal -->
+    <div id="create-folder-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-title-bar">
+                <div class="modal-title-text">Create New Folder</div>
+                <button class="modal-close" onclick="closeModal('create-folder-modal')" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="create-folder-form">
+                    <input type="hidden" id="create-folder-directory" name="directory" value="{{ current_path }}">
+                    <div class="form-group">
+                        <label for="foldername-input" class="form-label">Folder Name:</label>
+                        <input type="text" id="foldername-input" name="foldername" class="form-input" placeholder="New Folder" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="button-primary">Create</button>
+                        <button type="button" class="button-secondary" onclick="closeModal('create-folder-modal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+

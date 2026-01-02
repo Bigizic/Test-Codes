@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="window home-window">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="title-bar-text">File Explorer - Home</div>
+            <div class="title-bar-controls">
+                <button aria-label="Minimize"></button>
+                <button aria-label="Maximize"></button>
+                <button aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="home-content">
+            <div class="home-title">Welcome to File Explorer</div>
+            <div class="home-subtitle">Choose an option to get started</div>
+            
+            <div class="home-buttons">
+                <a href="{{ url_for('explorer') }}" class="home-button file-explorer-btn">
+                    <div class="home-button-icon">📁</div>
+                    <div class="home-button-text">
+                        <div class="home-button-title">File Explorer</div>
+                        <div class="home-button-desc">Browse and download files from your system</div>
+                    </div>
+                </a>
+                
+                <a href="{{ url_for('notes_list') }}" class="home-button notes-btn">
+                    <div class="home-button-icon">📝</div>
+                    <div class="home-button-text">
+                        <div class="home-button-title">Notes</div>
+                        <div class="home-button-desc">Create, edit, and manage your notes</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

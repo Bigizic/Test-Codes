@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes - File Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="window">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="title-bar-text">Notes</div>
+            <div class="title-bar-controls">
+                <button aria-label="Minimize"></button>
+                <button aria-label="Maximize"></button>
+                <button aria-label="Close" onclick="window.location.href='/'"></button>
+            </div>
+        </div>
+
+        <!-- Menu Bar -->
+        <div class="menu-bar">
+            <div class="menu-item">
+                <button class="menu-button" id="file-menu-btn">File</button>
+                <div class="menu-dropdown" id="file-menu">
+                    <div class="menu-item-option" onclick="window.location.href='/'">Go to Home</div>
+                    <div class="menu-item-option" onclick="window.location.href='{{ url_for('explorer') }}'">File Explorer</div>
+                    <div class="menu-separator"></div>
+                    <div class="menu-item-option" onclick="window.location.href='{{ url_for('create_note') }}'">New Note</div>
+                </div>
+            </div>
+            <div class="menu-item">
+                <button class="menu-button" id="edit-menu-btn">Edit</button>
+                <div class="menu-dropdown" id="edit-menu">
+                    <div class="menu-item-option" onclick="refreshNotes()">Refresh</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button class="toolbar-button" onclick="window.location.href='/'">
+                <span class="icon">🏠</span> Home
+            </button>
+            <button class="toolbar-button" onclick="window.location.href='{{ url_for('explorer') }}'">
+                <span class="icon">📁</span> File Explorer
+            </button>
+            <button class="toolbar-button" onclick="window.location.href='{{ url_for('create_note') }}'">
+                <span class="icon">➕</span> New Note
+            </button>
+        </div>
+
+        <!-- Notes List Container -->
+        <div class="notes-container">
+            {% if error %}
+            <div class="error-message">
+                ⚠️ {{ error }}
+            </div>
+            {% endif %}
+
+            {% if notes %}
+            <div class="notes-list">
+                {% for note in notes %}
+                <div class="note-card" data-note-id="{{ note.id }}">
+                    <div class="note-header">
+                        <div class="note-title-display">{{ note.title or '(Untitled)' }}</div>
+                        <div class="note-actions">
+                            <button class="note-action-btn" onclick="editNote({{ note.id }})" title="Edit">✏️</button>
+                            <button class="note-action-btn" onclick="deleteNote({{ note.id }})" title="Delete">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="note-content-preview">{{ note.content[:200] }}{% if note.content|length > 200 %}...{% endif %}</div>
+                    <div class="note-meta">
+                        <span>Created: {{ note.created_at.strftime('%Y-%m-%d %H:%M') if note.created_at else 'N/A' }}</span>
+                        <span>Updated: {{ note.updated_at.strftime('%Y-%m-%d %H:%M') if note.updated_at else 'N/A' }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-notes">
+                <div class="empty-icon">📝</div>
+                <div class="empty-message">No notes yet. Create your first note!</div>
+                <button class="button-primary" onclick="window.location.href='{{ url_for('create_note') }}'">Create New Note</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Context Menu for Notes -->
+    <div id="notes-context-menu" class="context-menu">
+        <div class="context-menu-item" id="ctx-create-note">
+            <span class="ctx-icon">➕</span> Create Note
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" id="ctx-edit-note" style="display: none;">
+            <span class="ctx-icon">✏️</span> Edit Note
+        </div>
+        <div class="context-menu-item" id="ctx-delete-note" style="display: none;">
+            <span class="ctx-icon">🗑️</span> Delete Note
+        </div>
+    </div>
+
+    <script>
+        let notesContextMenu = null;
+        let selectedNoteId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            notesContextMenu = document.getElementById('notes-context-menu');
+            
+            // Right-click on note cards
+            document.querySelectorAll('.note-card').forEach(card => {
+                card.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    const noteId = this.dataset.noteId || this.closest('[data-note-id]')?.dataset.noteId;
+                    if (noteId) {
+                        selectedNoteId = noteId;
+                        showNotesContextMenu(e, true);
+                    } else {
+                        showNotesContextMenu(e, false);
+                    }
+                });
+            });
+            
+            // Right-click on notes container
+            const notesContainer = document.querySelector('.notes-container');
+            if (notesContainer) {
+                notesContainer.addEventListener('contextmenu', function(e) {
+                    if (!e.target.closest('.note-card')) {
+                        e.preventDefault();
+                        showNotesContextMenu(e, false);
+                    }
+                });
+            }
+            
+            // Hide context menu on click
+            document.addEventListener('click', function() {
+                hideNotesContextMenu();
+            });
+            
+            // Context menu actions
+            document.getElementById('ctx-create-note').addEventListener('click', function() {
+                window.location.href = '/notes/create';
+                hideNotesContextMenu();
+            });
+            
+            document.getElementById('ctx-edit-note').addEventListener('click', function() {
+                if (selectedNoteId) {
+                    window.location.href = '/notes/' + selectedNoteId + '/edit';
+                }
+                hideNotesContextMenu();
+            });
+            
+            document.getElementById('ctx-delete-note').addEventListener('click', function() {
+                if (selectedNoteId) {
+                    deleteNote(selectedNoteId);
+                }
+                hideNotesContextMenu();
+            });
+        });
+
+        function showNotesContextMenu(e, hasSelection) {
+            if (!notesContextMenu) return;
+            
+            const editOption = document.getElementById('ctx-edit-note');
+            const deleteOption = document.getElementById('ctx-delete-note');
+            
+            if (hasSelection) {
+                editOption.style.display = 'block';
+                deleteOption.style.display = 'block';
+            } else {
+                editOption.style.display = 'none';
+                deleteOption.style.display = 'none';
+            }
+            
+            notesContextMenu.style.display = 'block';
+            notesContextMenu.style.left = e.pageX + 'px';
+            notesContextMenu.style.top = e.pageY + 'px';
+            
+            // Keep menu within viewport
+            const rect = notesContextMenu.getBoundingClientRect();
+            if (rect.right > window.innerWidth) {
+                notesContextMenu.style.left = (e.pageX - rect.width) + 'px';
+            }
+            if (rect.bottom > window.innerHeight) {
+                notesContextMenu.style.top = (e.pageY - rect.height) + 'px';
+            }
+        }
+
+        function hideNotesContextMenu() {
+            if (notesContextMenu) {
+                notesContextMenu.style.display = 'none';
+            }
+            selectedNoteId = null;
+        }
+
+        function editNote(noteId) {
+            window.location.href = '/notes/' + noteId + '/edit';
+        }
+
+        function deleteNote(noteId) {
+            if (confirm('Are you sure you want to delete this note?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/notes/' + noteId + '/delete';
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function refreshNotes() {
+            window.location.reload();
+        }
+
+        // Menu functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuButtons = document.querySelectorAll('.menu-button');
+            const menuItems = document.querySelectorAll('.menu-item');
+            
+            menuButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const menuItem = this.closest('.menu-item');
+                    const isActive = menuItem.classList.contains('active');
+                    
+                    menuItems.forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    
+                    if (!isActive) {
+                        menuItem.classList.add('active');
+                    }
+                });
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.menu-item')) {
+                    menuItems.forEach(item => {
+                        item.classList.remove('active');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if note %}Edit Note{% else %}New Note{% endif %} - File Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="window">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="title-bar-text">{% if note %}Edit Note{% else %}New Note{% endif %}</div>
+            <div class="title-bar-controls">
+                <button aria-label="Minimize"></button>
+                <button aria-label="Maximize"></button>
+                <button aria-label="Close" onclick="window.location.href='{{ url_for('notes_list') }}'"></button>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button class="toolbar-button" onclick="window.location.href='/'">
+                <span class="icon">🏠</span> Home
+            </button>
+            <button class="toolbar-button" onclick="window.location.href='{{ url_for('notes_list') }}'">
+                <span class="icon">📝</span> All Notes
+            </button>
+            <button class="toolbar-button" onclick="document.getElementById('note-form').submit()">
+                <span class="icon">💾</span> Save
+            </button>
+        </div>
+
+        <!-- Note Editor -->
+        <div class="note-editor-container">
+            <form id="note-form" method="POST" class="note-form">
+                <div class="form-group">
+                    <label for="title" class="form-label">Title:</label>
+                    <input type="text" 
+                           id="title" 
+                           name="title" 
+                           class="form-input" 
+                           value="{{ note.title if note else '' }}" 
+                           placeholder="Enter note title..."
+                           autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content" class="form-label">Content:</label>
+                    <textarea id="content" 
+                              name="content" 
+                              class="form-textarea" 
+                              rows="20" 
+                              placeholder="Enter your note content here...">{{ note.content if note else '' }}</textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="button-primary">Save Note</button>
+                    <button type="button" class="button-secondary" onclick="window.location.href='{{ url_for('notes_list') }}'">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Auto-save draft to localStorage (optional enhancement)
+        const titleInput = document.getElementById('title');
+        const contentInput = document.getElementById('content');
+        const draftKey = 'note_draft_' + {% if note %}{{ note.id }}{% else %}'new'{% endif %};
+
+        // Load draft from localStorage
+        const savedDraft = localStorage.getItem(draftKey);
+        {% if not note %}
+        if (savedDraft) {
+            const draft = JSON.parse(savedDraft);
+            if (!titleInput.value) titleInput.value = draft.title || '';
+            if (!contentInput.value) contentInput.value = draft.content || '';
+        }
+        {% endif %}
+
+        // Save draft to localStorage on input
+        function saveDraft() {
+            const draft = {
+                title: titleInput.value,
+                content: contentInput.value,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(draftKey, JSON.stringify(draft));
+        }
+
+        titleInput.addEventListener('input', saveDraft);
+        contentInput.addEventListener('input', saveDraft);
+
+        // Clear draft on successful save
+        document.getElementById('note-form').addEventListener('submit', function() {
+            localStorage.removeItem(draftKey);
+        });
+    </script>
+</body>
+</html>
+
