@@ -34,6 +34,9 @@ IS_PRODUCTION = FLASK_ENV == 'production'
 # Authentication password from .env
 AUTH_PASSWORD = os.getenv('AUTH_PASSWORD', '')
 
+# Passkey authentication mode
+USE_PASS_KEY = os.getenv('USE_PASS_KEY', 'false').lower() == 'true'
+
 # Load MySQL configuration from environment variables
 DB_HOST = os.getenv('DB_HOST', 'localhost')
 DB_PORT = int(os.getenv('DB_PORT', 3306))
@@ -56,6 +59,37 @@ def get_db_connection():
     except Error as e:
         print(f"Error connecting to MySQL: {e}")
         return None
+
+
+def ensure_users_table():
+    """Ensure the users table exists in the database."""
+    connection = get_db_connection()
+    if not connection:
+        return False
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(255) NOT NULL UNIQUE,
+                passkey VARCHAR(255) NOT NULL,
+                has_passkey BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_username (username),
+                INDEX idx_has_passkey (has_passkey)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return True
+    except Error as e:
+        print(f"Error creating users table: {e}")
+        if connection:
+            connection.close()
+        return False
 
 # Configuration: Set the root directory for browsing
 # Change this to the directory you want to browse
@@ -127,6 +161,78 @@ def is_authenticated():
     return session.get('authenticated', False) == True
 
 
+def has_users_with_passkey():
+    """Check if any users with passkey exist in the database."""
+    if not USE_PASS_KEY:
+        return False
+    
+    connection = get_db_connection()
+    if not connection:
+        return False
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute("SELECT COUNT(*) FROM users WHERE has_passkey = TRUE")
+        count = cursor.fetchone()[0]
+        cursor.close()
+        connection.close()
+        return count > 0
+    except Error as e:
+        print(f"Error checking users with passkey: {e}")
+        if connection:
+            connection.close()
+        return False
+
+
+def verify_passkey(username, passkey):
+    """Verify passkey for a user."""
+    connection = get_db_connection()
+    if not connection:
+        return False
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT * FROM users WHERE username = %s AND has_passkey = TRUE",
+            (username,)
+        )
+        user = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        
+        if user and user['passkey'] == passkey:
+            return True
+        return False
+    except Error as e:
+        print(f"Error verifying passkey: {e}")
+        if connection:
+            connection.close()
+        return False
+
+
+def create_user_with_passkey(username, passkey):
+    """Create a new user with passkey (SSO signup)."""
+    connection = get_db_connection()
+    if not connection:
+        return False
+    
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            "INSERT INTO users (username, passkey, has_passkey) VALUES (%s, %s, TRUE)",
+            (username, passkey)
+        )
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return True
+    except Error as e:
+        print(f"Error creating user: {e}")
+        if connection:
+            connection.close()
+        return False
+
+
 def require_auth(f):
     """Decorator to require authentication in production mode."""
     from functools import wraps
@@ -147,8 +253,8 @@ def require_auth(f):
 def authenticate_guard():
     """Guard that checks authentication before every request in production."""
     if IS_PRODUCTION:
-        # Allow access to login, authenticate, logout, and static files without authentication
-        if request.endpoint in ['login', 'authenticate', 'logout', 'static']:
+        # Allow access to login, authenticate, logout, sso_signup, sso_create, and static files without authentication
+        if request.endpoint in ['login', 'authenticate', 'logout', 'sso_signup', 'sso_create', 'static']:
             return None
         
         # Check if user is authenticated
@@ -165,28 +271,107 @@ def login():
         next_url = request.args.get('next', url_for('index'))
         return redirect(next_url)
     
-    return render_template('login.html', next_url=request.args.get('next', url_for('index')))
+    # Check if passkey mode is enabled
+    use_passkey = USE_PASS_KEY
+    has_users = has_users_with_passkey() if use_passkey else False
+    
+    return render_template('login.html', 
+                         next_url=request.args.get('next', url_for('index')),
+                         use_passkey=use_passkey,
+                         has_users=has_users)
 
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
     """Handle authentication."""
-    password = request.form.get('password', '')
     next_url = request.form.get('next', url_for('index'))
     
-    # Check if password is correct
-    if password == AUTH_PASSWORD and AUTH_PASSWORD:
-        session['authenticated'] = True
-        return redirect(next_url)
+    # Check if passkey mode is enabled
+    if USE_PASS_KEY:
+        username = request.form.get('username', '').strip()
+        passkey = request.form.get('passkey', '')
+        
+        if not username or not passkey:
+            flash('Username and passkey are required.', 'error')
+            return redirect(url_for('login', next=next_url))
+        
+        # Verify passkey
+        if verify_passkey(username, passkey):
+            session['authenticated'] = True
+            session['username'] = username
+            return redirect(next_url)
+        else:
+            flash('Invalid username or passkey. Please try again.', 'error')
+            return redirect(url_for('login', next=next_url))
     else:
-        flash('Invalid password. Please try again.', 'error')
-        return redirect(url_for('login', next=next_url))
+        # Traditional password authentication
+        password = request.form.get('password', '')
+        
+        if password == AUTH_PASSWORD and AUTH_PASSWORD:
+            session['authenticated'] = True
+            return redirect(next_url)
+        else:
+            flash('Invalid password. Please try again.', 'error')
+            return redirect(url_for('login', next=next_url))
+
+
+@app.route('/sso_signup')
+def sso_signup():
+    """SSO signup page for creating the first user with passkey."""
+    # Only allow if passkey mode is enabled and no users exist
+    if not USE_PASS_KEY:
+        return redirect(url_for('login'))
+    
+    if has_users_with_passkey():
+        flash('Users already exist. Please login instead.', 'error')
+        return redirect(url_for('login'))
+    
+    return render_template('sso_signup.html')
+
+
+@app.route('/sso_create', methods=['POST'])
+def sso_create():
+    """Create first user with passkey (SSO signup)."""
+    if not USE_PASS_KEY:
+        return redirect(url_for('login'))
+    
+    if has_users_with_passkey():
+        flash('Users already exist. Please login instead.', 'error')
+        return redirect(url_for('login'))
+    
+    username = request.form.get('username', '').strip()
+    passkey = request.form.get('passkey', '')
+    confirm_passkey = request.form.get('confirm_passkey', '')
+    
+    # Validation
+    if not username:
+        flash('Username is required.', 'error')
+        return redirect(url_for('sso_signup'))
+    
+    if not passkey or len(passkey) < 6:
+        flash('Passkey must be at least 6 characters long.', 'error')
+        return redirect(url_for('sso_signup'))
+    
+    if passkey != confirm_passkey:
+        flash('Passkeys do not match.', 'error')
+        return redirect(url_for('sso_signup'))
+    
+    # Create user
+    if create_user_with_passkey(username, passkey):
+        session['authenticated'] = True
+        session['username'] = username
+        flash('Account created successfully!', 'success')
+        return redirect(url_for('index'))
+    else:
+        flash('Error creating account. Please try again.', 'error')
+        return redirect(url_for('sso_signup'))
 
 
 @app.route('/logout')
 def logout():
     """Logout and clear session."""
     session.pop('authenticated', None)
+    session.pop('username', None)
     return redirect(url_for('login'))
 
 
@@ -1131,6 +1316,10 @@ def delete_note(note_id):
 
 
 if __name__ == '__main__':
+    # Ensure users table exists if passkey mode is enabled
+    if USE_PASS_KEY:
+        ensure_users_table()
+    
     # Load server configuration from environment variables
     SERVER_HOST = os.getenv('SERVER_HOST', '0.0.0.0')
     SERVER_PORT = int(os.getenv('SERVER_PORT', 5000))
@@ -1141,6 +1330,10 @@ if __name__ == '__main__':
     print("=" * 60)
     print(f"Root directory: {ROOT_DIRECTORY}")
     print(f"Database: {DB_NAME} @ {DB_HOST}:{DB_PORT}")
+    print(f"Environment: {FLASK_ENV}")
+    print(f"Authentication: {'Production (Enabled)' if IS_PRODUCTION else 'Development (Disabled)'}")
+    if IS_PRODUCTION:
+        print(f"Passkey Mode: {'Enabled' if USE_PASS_KEY else 'Disabled (Password)'}")
     print(f"Server starting on http://{SERVER_HOST}:{SERVER_PORT}")
     print("\nTo access from another device:")
     print("1. Find your machine's IP address: hostname -I")

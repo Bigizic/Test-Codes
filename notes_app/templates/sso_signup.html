@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSO Sign Up - File Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="window" style="max-width: 500px; margin-top: 100px;">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="title-bar-text">SSO Sign Up</div>
+            <div class="title-bar-controls">
+                <button aria-label="Minimize"></button>
+                <button aria-label="Maximize"></button>
+                <button aria-label="Close" onclick="window.location.href='{{ url_for('login') }}'">×</button>
+            </div>
+        </div>
+
+        <!-- Signup Form -->
+        <div class="modal-body" style="padding: 30px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 10px;">👤</div>
+                <div style="font-size: 14px; font-weight: bold; color: #000080; margin-bottom: 5px;">
+                    Create First Account
+                </div>
+                <div style="font-size: 11px; color: #606060;">
+                    Create your account with a passkey
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="error-message" style="margin-bottom: 20px;">
+                            ⚠️ {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('sso_create') }}" id="signup-form">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username:</label>
+                    <input type="text" 
+                           id="username" 
+                           name="username" 
+                           class="form-input" 
+                           placeholder="Enter username..."
+                           autofocus
+                           required
+                           minlength="3">
+                    <small style="font-size: 10px; color: #606060;">Minimum 3 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="passkey" class="form-label">Passkey:</label>
+                    <input type="password" 
+                           id="passkey" 
+                           name="passkey" 
+                           class="form-input" 
+                           placeholder="Enter passkey..."
+                           required
+                           minlength="6">
+                    <small style="font-size: 10px; color: #606060;">Minimum 6 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_passkey" class="form-label">Confirm Passkey:</label>
+                    <input type="password" 
+                           id="confirm_passkey" 
+                           name="confirm_passkey" 
+                           class="form-input" 
+                           placeholder="Confirm passkey..."
+                           required
+                           minlength="6">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="button-primary">Create Account</button>
+                    <button type="button" class="button-secondary" onclick="window.location.href='{{ url_for('login') }}'">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Validate passkey match
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            const passkey = document.getElementById('passkey').value;
+            const confirmPasskey = document.getElementById('confirm_passkey').value;
+            
+            if (passkey !== confirmPasskey) {
+                e.preventDefault();
+                alert('Passkeys do not match!');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>
+
