@@ -618,8 +618,47 @@ function updateZoomDisplay() {
     }
 }
 
-// Load saved zoom on page load
+// Theme Management
+function setTheme(theme) {
+    // Remove all theme classes
+    document.body.classList.remove('theme-retro', 'theme-robotic', 'theme-cyberpunk', 'theme-saas');
+    
+    // Add selected theme class
+    if (theme !== 'retro') {
+        document.body.classList.add('theme-' + theme);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('fileExplorerTheme', theme);
+    
+    // Update checkmarks in menu
+    updateThemeCheckmarks(theme);
+    
+    // Close menu
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+    });
+}
+
+function updateThemeCheckmarks(selectedTheme) {
+    const themes = ['retro', 'robotic', 'cyberpunk', 'saas'];
+    themes.forEach(theme => {
+        const checkElement = document.getElementById('theme-' + theme + '-check');
+        if (checkElement) {
+            if (theme === selectedTheme) {
+                checkElement.textContent = '✓';
+            } else {
+                checkElement.textContent = '';
+            }
+        }
+    });
+}
+
+// Load saved theme on page load
 document.addEventListener('DOMContentLoaded', function() {
+    const savedTheme = localStorage.getItem('fileExplorerTheme') || 'retro';
+    setTheme(savedTheme);
+    
     const savedZoom = localStorage.getItem('fileExplorerZoom');
     if (savedZoom) {
         currentZoom = parseInt(savedZoom, 10);

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Authentication Required - File Explorer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
 </head>
 <body>
     <div class="window" style="max-width: 500px; margin-top: 100px;">
@@ -116,6 +117,22 @@
                 });
             }
         }
+    </script>
+    
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('fileExplorerTheme') || 'retro';
+            if (typeof setTheme === 'function') {
+                setTheme(savedTheme);
+            } else {
+                document.body.classList.remove('theme-retro', 'theme-robotic', 'theme-cyberpunk', 'theme-saas');
+                if (savedTheme !== 'retro') {
+                    document.body.classList.add('theme-' + savedTheme);
+                }
+            }
+        });
     </script>
 </body>
 </html>

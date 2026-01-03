@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Explorer - Home</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
 </head>
 <body>
     <div class="window home-window">
@@ -42,6 +43,23 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        // Theme Management
+        function setTheme(theme) {
+            document.body.classList.remove('theme-retro', 'theme-robotic', 'theme-cyberpunk', 'theme-saas');
+            if (theme !== 'retro') {
+                document.body.classList.add('theme-' + theme);
+            }
+            localStorage.setItem('fileExplorerTheme', theme);
+        }
+        
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('fileExplorerTheme') || 'retro';
+            setTheme(savedTheme);
+        });
+    </script>
 </body>
 </html>
 

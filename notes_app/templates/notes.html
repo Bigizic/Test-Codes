@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes - File Explorer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
 </head>
 <body>
     <div class="window">
@@ -33,6 +34,23 @@
                 <button class="menu-button" id="edit-menu-btn">Edit</button>
                 <div class="menu-dropdown" id="edit-menu">
                     <div class="menu-item-option" onclick="refreshNotes()">Refresh</div>
+                </div>
+            </div>
+            <div class="menu-item">
+                <button class="menu-button" id="view-menu-btn">View</button>
+                <div class="menu-dropdown" id="view-menu">
+                    <div class="menu-item-option" onclick="setTheme('retro')" id="theme-retro-option">
+                        <span id="theme-retro-check">✓</span> Retro (Default)
+                    </div>
+                    <div class="menu-item-option" onclick="setTheme('robotic')" id="theme-robotic-option">
+                        <span id="theme-robotic-check"></span> Robotic
+                    </div>
+                    <div class="menu-item-option" onclick="setTheme('cyberpunk')" id="theme-cyberpunk-option">
+                        <span id="theme-cyberpunk-check"></span> Cyberpunk
+                    </div>
+                    <div class="menu-item-option" onclick="setTheme('saas')" id="theme-saas-option">
+                        <span id="theme-saas-check"></span> Modern SaaS
+                    </div>
                 </div>
             </div>
         </div>
@@ -269,6 +287,39 @@
                     });
                 }
             });
+        });
+        
+        // Theme Management
+        function setTheme(theme) {
+            document.body.classList.remove('theme-retro', 'theme-robotic', 'theme-cyberpunk', 'theme-saas');
+            if (theme !== 'retro') {
+                document.body.classList.add('theme-' + theme);
+            }
+            localStorage.setItem('fileExplorerTheme', theme);
+            updateThemeCheckmarks(theme);
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+        }
+        
+        function updateThemeCheckmarks(selectedTheme) {
+            const themes = ['retro', 'robotic', 'cyberpunk', 'saas'];
+            themes.forEach(theme => {
+                const checkElement = document.getElementById('theme-' + theme + '-check');
+                if (checkElement) {
+                    if (theme === selectedTheme) {
+                        checkElement.textContent = '✓';
+                    } else {
+                        checkElement.textContent = '';
+                    }
+                }
+            });
+        }
+        
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('fileExplorerTheme') || 'retro';
+            setTheme(savedTheme);
         });
     </script>
     

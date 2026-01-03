@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Explorer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
 </head>
 <body>
     <div class="window">
@@ -48,6 +49,19 @@
                     <div class="menu-item-option" onclick="setViewMode('grid')" id="view-grid-option">Grid View</div>
                     <div class="menu-separator"></div>
                     <div class="menu-item-option" onclick="showHiddenFiles()">Show Hidden Files</div>
+                    <div class="menu-separator"></div>
+                    <div class="menu-item-option" onclick="setTheme('retro')" id="theme-retro-option">
+                        <span id="theme-retro-check">✓</span> Retro (Default)
+                    </div>
+                    <div class="menu-item-option" onclick="setTheme('robotic')" id="theme-robotic-option">
+                        <span id="theme-robotic-check"></span> Robotic
+                    </div>
+                    <div class="menu-item-option" onclick="setTheme('cyberpunk')" id="theme-cyberpunk-option">
+                        <span id="theme-cyberpunk-check"></span> Cyberpunk
+                    </div>
+                    <div class="menu-item-option" onclick="setTheme('saas')" id="theme-saas-option">
+                        <span id="theme-saas-check"></span> Modern SaaS
+                    </div>
                 </div>
             </div>
             <div class="menu-item">
