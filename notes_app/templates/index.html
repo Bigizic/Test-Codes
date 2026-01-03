@@ -136,9 +136,6 @@
                                 <span class="file-icon file-icon">📄</span>
                             {% endif %}
                             <span class="file-name">{{ item.name }}</span>
-                            <button class="file-info-btn" 
-                                    onclick="event.stopPropagation(); showFileInfo('{{ item.relative_path }}')"
-                                    title="File Information">ℹ️</button>
                             <button class="file-options-btn" 
                                     onclick="event.stopPropagation(); showFileOptions(event, '{{ item.relative_path }}', {{ 'true' if item.is_dir else 'false' }})"
                                     title="Options">⋯</button>
@@ -187,9 +184,6 @@
                         <div class="grid-icon">📄</div>
                     {% endif %}
                     <div class="grid-name">{{ item.name }}</div>
-                    <button class="grid-info-btn" 
-                            onclick="event.stopPropagation(); showFileInfo('{{ item.relative_path }}')"
-                            title="File Information">ℹ️</button>
                     <button class="grid-options-btn" 
                             onclick="event.stopPropagation(); showFileOptions(event, '{{ item.relative_path }}', {{ 'true' if item.is_dir else 'false' }})"
                             title="Options">⋯</button>

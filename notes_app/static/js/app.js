@@ -1346,20 +1346,18 @@ function loadMoveBrowser(path) {
                 browser.appendChild(parentItem);
             }
             
-            // Add "Select Current Folder" option at the top
-            const selectCurrentItem = document.createElement('div');
-            selectCurrentItem.className = 'move-browser-item';
-            selectCurrentItem.style.background = '#e8f4f8';
-            selectCurrentItem.style.fontWeight = 'bold';
-            selectCurrentItem.innerHTML = '<span class="move-browser-icon">✓</span><span class="move-browser-name">Select This Folder</span>';
-            selectCurrentItem.onclick = () => {
-                browser.querySelectorAll('.move-browser-item').forEach(i => i.classList.remove('selected'));
-                selectCurrentItem.classList.add('selected');
-                moveBrowserSelectedPath = path || '';
-                const submitBtn = document.getElementById('move-submit-btn');
-                if (submitBtn) submitBtn.disabled = false;
-            };
-            browser.appendChild(selectCurrentItem);
+            // Automatically select the current folder
+            moveBrowserSelectedPath = path || '';
+            const submitBtn = document.getElementById('move-submit-btn');
+            if (submitBtn) submitBtn.disabled = true; // Will be enabled after folders load
+            
+            // Add "Current Folder" indicator at the top (auto-selected)
+            const currentFolderItem = document.createElement('div');
+            currentFolderItem.className = 'move-browser-item selected';
+            currentFolderItem.style.background = '#316ac5';
+            currentFolderItem.style.color = 'white';
+            currentFolderItem.innerHTML = '<span class="move-browser-icon">📁</span><span class="move-browser-name">. (Current Folder - Selected)</span>';
+            browser.appendChild(currentFolderItem);
             
             // Add separator
             const separator = document.createElement('div');
@@ -1380,7 +1378,7 @@ function loadMoveBrowser(path) {
                 folderItem.className = 'move-browser-item';
                 folderItem.innerHTML = `<span class="move-browser-icon">📁</span><span class="move-browser-name">${itemName}</span>`;
                 folderItem.onclick = () => {
-                    // Navigate into folder
+                    // Navigate into folder - automatically selects it
                     loadMoveBrowser(itemPath);
                 };
                 browser.appendChild(folderItem);
@@ -1394,6 +1392,11 @@ function loadMoveBrowser(path) {
             // Show/hide up button
             if (upButton) {
                 upButton.style.display = path ? 'inline-block' : 'none';
+            }
+            
+            // Enable submit button since current folder is auto-selected
+            if (submitBtn) {
+                submitBtn.disabled = false;
             }
         })
         .catch(error => {
@@ -1409,21 +1412,13 @@ function moveBrowserGoUp() {
         pathParts.pop();
         const newPath = pathParts.join('/');
         loadMoveBrowser(newPath);
-        // Clear selection when navigating
-        moveBrowserSelectedPath = '';
-        const submitBtn = document.getElementById('move-submit-btn');
-        if (submitBtn) submitBtn.disabled = true;
-        document.getElementById('move-folder-browser').querySelectorAll('.move-browser-item').forEach(i => i.classList.remove('selected'));
+        // Current folder is automatically selected, no need to clear
     }
 }
 
 function moveBrowserGoHome() {
     loadMoveBrowser('');
-    // Clear selection when navigating
-    moveBrowserSelectedPath = '';
-    const submitBtn = document.getElementById('move-submit-btn');
-    if (submitBtn) submitBtn.disabled = true;
-    document.getElementById('move-folder-browser').querySelectorAll('.move-browser-item').forEach(i => i.classList.remove('selected'));
+    // Current folder is automatically selected, no need to clear
 }
 
 // Initialize file options menu
