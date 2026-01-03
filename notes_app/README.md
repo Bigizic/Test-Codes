@@ -117,6 +117,41 @@ sudo ufw allow 5000
 - Hidden files (starting with `.`) are not shown by default
 - Only files within the configured root directory are accessible
 
+## Authentication Guard
+
+The application includes an **Authenticator Guard** that protects all endpoints when running in production mode.
+
+### How It Works
+
+- **Development Mode** (`FLASK_ENV=development` or not set): All routes are accessible without authentication
+- **Production Mode** (`FLASK_ENV=production`): All routes require authentication via password
+
+### Configuration
+
+To enable authentication in production, add these variables to your `.env` file:
+
+```env
+FLASK_ENV=production
+AUTH_PASSWORD=your_secure_password_here
+SECRET_KEY=your_secret_key_here
+```
+
+**Important:**
+- Set `FLASK_ENV=production` to activate the authentication guard
+- Set `AUTH_PASSWORD` to your desired password (users will need this to access the app)
+- Set `SECRET_KEY` to a random string for session security (or leave it blank to auto-generate)
+
+### Usage
+
+1. When `FLASK_ENV=production`, users will be redirected to a login page
+2. Enter the password set in `AUTH_PASSWORD`
+3. After successful login, users can access all features
+4. Session persists until logout or browser session ends
+
+### Logout
+
+Users can logout by visiting `/logout` or the session will expire when the browser is closed.
+
 ## Project Structure
 
 ```

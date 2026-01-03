@@ -24,6 +24,16 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# Session configuration for authentication
+app.secret_key = os.getenv('SECRET_KEY', os.urandom(24).hex())
+
+# Check if we're in production mode
+FLASK_ENV = os.getenv('FLASK_ENV', 'development').lower()
+IS_PRODUCTION = FLASK_ENV == 'production'
+
+# Authentication password from .env
+AUTH_PASSWORD = os.getenv('AUTH_PASSWORD', '')
+
 # Load MySQL configuration from environment variables
 DB_HOST = os.getenv('DB_HOST', 'localhost')
 DB_PORT = int(os.getenv('DB_PORT', 3306))
@@ -110,7 +120,78 @@ def get_file_info(file_path):
     return info
 
 
+# ==================== AUTHENTICATION GUARD ====================
+
+def is_authenticated():
+    """Check if user is authenticated."""
+    return session.get('authenticated', False) == True
+
+
+def require_auth(f):
+    """Decorator to require authentication in production mode."""
+    from functools import wraps
+    
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if IS_PRODUCTION and not is_authenticated():
+            # Allow access to login and static files
+            if request.endpoint in ['login', 'static', 'authenticate']:
+                return f(*args, **kwargs)
+            # Redirect to login for all other routes
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.before_request
+def authenticate_guard():
+    """Guard that checks authentication before every request in production."""
+    if IS_PRODUCTION:
+        # Allow access to login, authenticate, logout, and static files without authentication
+        if request.endpoint in ['login', 'authenticate', 'logout', 'static']:
+            return None
+        
+        # Check if user is authenticated
+        if not is_authenticated():
+            # Redirect to login page, preserving the intended destination
+            return redirect(url_for('login', next=request.url))
+
+
+@app.route('/login')
+def login():
+    """Login page."""
+    # If already authenticated, redirect to home
+    if is_authenticated():
+        next_url = request.args.get('next', url_for('index'))
+        return redirect(next_url)
+    
+    return render_template('login.html', next_url=request.args.get('next', url_for('index')))
+
+
+@app.route('/authenticate', methods=['POST'])
+def authenticate():
+    """Handle authentication."""
+    password = request.form.get('password', '')
+    next_url = request.form.get('next', url_for('index'))
+    
+    # Check if password is correct
+    if password == AUTH_PASSWORD and AUTH_PASSWORD:
+        session['authenticated'] = True
+        return redirect(next_url)
+    else:
+        flash('Invalid password. Please try again.', 'error')
+        return redirect(url_for('login', next=next_url))
+
+
+@app.route('/logout')
+def logout():
+    """Logout and clear session."""
+    session.pop('authenticated', None)
+    return redirect(url_for('login'))
+
+
 @app.route('/')
+@require_auth
 def index():
     """Homepage with File Explorer and Notes options."""
     return render_template('home.html')
@@ -198,6 +279,7 @@ def explorer(subpath=''):
 @app.route('/browse')
 @app.route('/browse/')
 @app.route('/browse/<path:subpath>')
+@require_auth
 def browse(subpath=''):
     """Alias route for /explorer for backward compatibility."""
     return explorer(subpath)
@@ -205,6 +287,7 @@ def browse(subpath=''):
 
 @app.route('/preview')
 @app.route('/preview/<path:filepath>')
+@require_auth
 def preview(filepath=''):
     """
     Preview an image or video file.
@@ -253,6 +336,7 @@ def preview(filepath=''):
 
 @app.route('/download')
 @app.route('/download/<path:filepath>')
+@require_auth
 def download(filepath=''):
     """
     Download a file.
@@ -288,6 +372,7 @@ def download(filepath=''):
 # ==================== FILE OPERATIONS ====================
 
 @app.route('/upload', methods=['POST'])
+@require_auth
 def upload_file():
     """Upload a file to the current directory."""
     if 'file' not in request.files:
@@ -331,6 +416,7 @@ def upload_file():
 
 
 @app.route('/create_file', methods=['POST'])
+@require_auth
 def create_file():
     """Create a new empty file."""
     filename = request.form.get('filename', '').strip()
@@ -374,6 +460,7 @@ def create_file():
 
 
 @app.route('/create_folder', methods=['POST'])
+@require_auth
 def create_folder():
     """Create a new folder."""
     foldername = request.form.get('foldername', '').strip()
@@ -415,6 +502,7 @@ def create_folder():
 
 
 @app.route('/delete', methods=['POST'])
+@require_auth
 def delete_file():
     """Delete a file or folder."""
     filepath = request.form.get('filepath', '')
@@ -450,6 +538,7 @@ def delete_file():
 
 
 @app.route('/rename', methods=['POST'])
+@require_auth
 def rename_file():
     """Rename a file or folder."""
     filepath = request.form.get('filepath', '')
@@ -489,6 +578,7 @@ def rename_file():
 
 
 @app.route('/copy', methods=['POST'])
+@require_auth
 def copy_file():
     """Copy a file or folder to clipboard (store in session)."""
     filepath = request.form.get('filepath', '')
@@ -521,6 +611,7 @@ def copy_file():
 
 
 @app.route('/cut', methods=['POST'])
+@require_auth
 def cut_file():
     """Cut a file or folder to clipboard (store in session)."""
     filepath = request.form.get('filepath', '')
@@ -551,6 +642,7 @@ def cut_file():
 
 
 @app.route('/paste', methods=['POST'])
+@require_auth
 def paste_file():
     """Paste a copied or cut file/folder to target directory."""
     source_path = request.form.get('source_path', '')
@@ -611,6 +703,7 @@ def paste_file():
 
 
 @app.route('/move', methods=['POST'])
+@require_auth
 def move_file():
     """Move a file or folder to a new location."""
     filepath = request.form.get('filepath', '')
@@ -658,6 +751,7 @@ def move_file():
 
 
 @app.route('/file_info/<path:filepath>')
+@require_auth
 def get_file_info_endpoint(filepath=''):
     """Get comprehensive file metadata and information."""
     if not filepath:
@@ -885,6 +979,7 @@ def internal_error(error):
 # ==================== NOTES ROUTES ====================
 
 @app.route('/notes')
+@require_auth
 def notes_list():
     """Display all notes."""
     connection = get_db_connection()
@@ -905,6 +1000,7 @@ def notes_list():
 
 
 @app.route('/notes/create', methods=['GET', 'POST'])
+@require_auth
 def create_note():
     """Create a new note."""
     if request.method == 'POST':
@@ -935,6 +1031,7 @@ def create_note():
 
 
 @app.route('/notes/<int:note_id>')
+@require_auth
 def view_note(note_id):
     """View a note (read-only)."""
     connection = get_db_connection()
@@ -963,6 +1060,7 @@ def view_note(note_id):
 
 
 @app.route('/notes/<int:note_id>/edit', methods=['GET', 'POST'])
+@require_auth
 def edit_note(note_id):
     """Edit an existing note."""
     connection = get_db_connection()
@@ -1012,6 +1110,7 @@ def edit_note(note_id):
 
 
 @app.route('/notes/<int:note_id>/delete', methods=['POST'])
+@require_auth
 def delete_note(note_id):
     """Delete a note."""
     connection = get_db_connection()

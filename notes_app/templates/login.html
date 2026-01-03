@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Required - File Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="window" style="max-width: 500px; margin-top: 100px;">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="title-bar-text">Authentication Required</div>
+            <div class="title-bar-controls">
+                <button aria-label="Minimize"></button>
+                <button aria-label="Maximize"></button>
+                <button aria-label="Close" onclick="window.location.href='/'">×</button>
+            </div>
+        </div>
+
+        <!-- Login Form -->
+        <div class="modal-body" style="padding: 30px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 10px;">🔒</div>
+                <div style="font-size: 14px; font-weight: bold; color: #000080; margin-bottom: 5px;">
+                    Authenticator Guard
+                </div>
+                <div style="font-size: 11px; color: #606060;">
+                    Please enter the password to continue
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="error-message" style="margin-bottom: 20px;">
+                            ⚠️ {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('authenticate') }}" id="login-form">
+                <input type="hidden" name="next" value="{{ next_url }}">
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password:</label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           class="form-input" 
+                           placeholder="Enter password..."
+                           autofocus
+                           required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="button-primary">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Submit form on Enter key
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('login-form').submit();
+            }
+        });
+    </script>
+</body>
+</html>
+
