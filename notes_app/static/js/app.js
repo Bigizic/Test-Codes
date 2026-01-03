@@ -599,6 +599,213 @@ function updateSelectAllState() {
     }
 }
 
+// File Information Functions
+function showFileInfo(filepath) {
+    const modal = document.getElementById('file-info-modal');
+    const content = document.getElementById('file-info-content');
+    
+    if (!modal || !content) return;
+    
+    // Show modal with loading state
+    modal.classList.add('show');
+    content.innerHTML = '<div style="text-align: center; padding: 20px; color: #808080;">Loading file information...</div>';
+    
+    // Fetch file information
+    const encodedPath = encodeURIComponent(filepath);
+    fetch(`/file_info/${encodedPath}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayFileInfo(data.info);
+            } else {
+                content.innerHTML = `<div style="color: #800000; padding: 20px;">Error: ${data.error}</div>`;
+            }
+        })
+        .catch(error => {
+            content.innerHTML = `<div style="color: #800000; padding: 20px;">Error loading file information: ${error}</div>`;
+        });
+}
+
+function displayFileInfo(info) {
+    const content = document.getElementById('file-info-content');
+    if (!content) return;
+    
+    let html = '';
+    
+    // Basic Information Section
+    html += '<div class="file-info-section">';
+    html += '<div class="file-info-section-title">Basic Information</div>';
+    html += createInfoRow('Name', info.name);
+    html += createInfoRow('Type', info.is_directory ? 'Directory' : (info.is_file ? 'File' : 'Unknown'));
+    html += createInfoRow('Is Directory', info.is_directory, true);
+    html += createInfoRow('Is File', info.is_file, true);
+    html += createInfoRow('Is Symbolic Link', info.is_link || info.is_symlink, true);
+    if (info.symlink_target) {
+        html += createInfoRow('Symlink Target', info.symlink_target);
+    }
+    html += '</div>';
+    
+    // Path Information Section
+    html += '<div class="file-info-section">';
+    html += '<div class="file-info-section-title">Path Information</div>';
+    html += createInfoRow('Relative Path', info.relative_path);
+    html += createInfoRow('Full Path', info.full_path);
+    html += createInfoRow('Absolute Path', info.absolute_path);
+    html += createInfoRow('Canonical Path', info.canonical_path);
+    html += createInfoRow('Parent Directory', info.parent_directory);
+    html += '</div>';
+    
+    // Size Information Section
+    if (info.size_bytes !== undefined) {
+        html += '<div class="file-info-section">';
+        html += '<div class="file-info-section-title">Size Information</div>';
+        html += createInfoRow('Size (Bytes)', info.size_bytes.toLocaleString());
+        html += createInfoRow('Size (Formatted)', info.size_formatted);
+        html += createInfoRow('Size (KB)', info.size_kb.toLocaleString());
+        html += createInfoRow('Size (MB)', info.size_mb.toLocaleString());
+        html += '</div>';
+    } else if (info.directory_size_formatted) {
+        html += '<div class="file-info-section">';
+        html += '<div class="file-info-section-title">Directory Size</div>';
+        html += createInfoRow('Total Size', info.directory_size_formatted);
+        if (info.directory_size_bytes !== undefined) {
+            html += createInfoRow('Total Size (Bytes)', info.directory_size_bytes.toLocaleString());
+        }
+        html += '</div>';
+    }
+    
+    // Timestamp Information Section
+    html += '<div class="file-info-section">';
+    html += '<div class="file-info-section-title">Timestamps</div>';
+    html += createInfoRow('Created', info.created + ' (Unix: ' + info.created_timestamp + ')');
+    html += createInfoRow('Modified', info.modified + ' (Unix: ' + info.modified_timestamp + ')');
+    html += createInfoRow('Accessed', info.accessed + ' (Unix: ' + info.accessed_timestamp + ')');
+    html += '</div>';
+    
+    // File Type Information Section
+    html += '<div class="file-info-section">';
+    html += '<div class="file-info-section-title">File Type Information</div>';
+    html += createInfoRow('Extension', info.extension || '(none)');
+    html += createInfoRow('Extension (without dot)', info.extension_without_dot || '(none)');
+    html += createInfoRow('Filename (without extension)', info.filename_without_ext);
+    html += createInfoRow('MIME Type', info.mime_type);
+    html += createInfoRow('MIME Encoding', info.mime_encoding);
+    if (info.is_text !== undefined) {
+        html += createInfoRow('Is Text File', info.is_text, true);
+        html += createInfoRow('Is Binary File', info.is_binary, true);
+    }
+    if (info.line_count !== undefined) {
+        html += createInfoRow('Line Count', info.line_count);
+    }
+    html += '</div>';
+    
+    // Permissions Section (Unix)
+    if (info.permissions_string) {
+        html += '<div class="file-info-section">';
+        html += '<div class="file-info-section-title">Permissions (Unix)</div>';
+        html += createInfoRow('Permissions (String)', info.permissions_string);
+        html += createInfoRow('Permissions (Octal)', info.permissions_octal);
+        html += '<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #c0c0c0;">';
+        html += '<div style="font-weight: bold; margin-bottom: 4px;">Owner Permissions:</div>';
+        html += createInfoRow('  Read', info.owner_read, true);
+        html += createInfoRow('  Write', info.owner_write, true);
+        html += createInfoRow('  Execute', info.owner_execute, true);
+        html += '<div style="font-weight: bold; margin: 8px 0 4px 0;">Group Permissions:</div>';
+        html += createInfoRow('  Read', info.group_read, true);
+        html += createInfoRow('  Write', info.group_write, true);
+        html += createInfoRow('  Execute', info.group_execute, true);
+        html += '<div style="font-weight: bold; margin: 8px 0 4px 0;">Other Permissions:</div>';
+        html += createInfoRow('  Read', info.other_read, true);
+        html += createInfoRow('  Write', info.other_write, true);
+        html += createInfoRow('  Execute', info.other_execute, true);
+        html += '<div style="font-weight: bold; margin: 8px 0 4px 0;">Special Bits:</div>';
+        html += createInfoRow('  SetUID', info.setuid, true);
+        html += createInfoRow('  SetGID', info.setgid, true);
+        html += createInfoRow('  Sticky Bit', info.sticky_bit, true);
+        html += '</div>';
+        html += '</div>';
+    }
+    
+    // Owner/Group Information
+    if (info.owner_name || info.owner_id !== undefined) {
+        html += '<div class="file-info-section">';
+        html += '<div class="file-info-section-title">Owner & Group</div>';
+        if (info.owner_name) {
+            html += createInfoRow('Owner Name', info.owner_name);
+        }
+        html += createInfoRow('Owner ID (UID)', info.owner_id);
+        if (info.group_name) {
+            html += createInfoRow('Group Name', info.group_name);
+        }
+        html += createInfoRow('Group ID (GID)', info.group_id);
+        html += '</div>';
+    }
+    
+    // System Information Section
+    if (info.inode !== undefined) {
+        html += '<div class="file-info-section">';
+        html += '<div class="file-info-section-title">System Information</div>';
+        html += createInfoRow('Inode Number', info.inode);
+        html += createInfoRow('Device ID', info.device);
+        html += createInfoRow('Hard Links Count', info.hard_links);
+        if (info.device_type !== undefined && info.device_type !== null) {
+            html += createInfoRow('Device Type', info.device_type);
+        }
+        html += '</div>';
+    }
+    
+    // File Type Flags Section
+    html += '<div class="file-info-section">';
+    html += '<div class="file-info-section-title">File Type Flags</div>';
+    html += createInfoRow('Is Block Device', info.is_block_device, true);
+    html += createInfoRow('Is Character Device', info.is_char_device, true);
+    html += createInfoRow('Is FIFO (Named Pipe)', info.is_fifo, true);
+    html += createInfoRow('Is Socket', info.is_socket, true);
+    html += '</div>';
+    
+    // Access Rights Section
+    html += '<div class="file-info-section">';
+    html += '<div class="file-info-section-title">Access Rights</div>';
+    html += createInfoRow('Is Readable', info.is_readable, true);
+    html += createInfoRow('Is Writable', info.is_writable, true);
+    html += createInfoRow('Is Executable', info.is_executable, true);
+    html += '</div>';
+    
+    // Platform Information Section
+    html += '<div class="file-info-section">';
+    html += '<div class="file-info-section-title">Platform Information</div>';
+    html += createInfoRow('Platform', info.platform);
+    html += createInfoRow('Platform Version', info.platform_version);
+    html += '</div>';
+    
+    content.innerHTML = html;
+}
+
+function createInfoRow(label, value, isBoolean = false) {
+    let valueClass = '';
+    let displayValue = value;
+    
+    if (isBoolean) {
+        valueClass = value ? 'boolean-true' : 'boolean-false';
+        displayValue = value ? 'Yes' : 'No';
+    } else {
+        displayValue = value !== undefined && value !== null ? String(value) : 'N/A';
+    }
+    
+    return `
+        <div class="file-info-row">
+            <div class="file-info-label">${label}:</div>
+            <div class="file-info-value ${valueClass}">${escapeHtml(displayValue)}</div>
+        </div>
+    `;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function showHiddenFiles() {
     // This would require backend changes to show hidden files
     showNotification('Hidden files feature - modify app.py to show files starting with "."', 'info');

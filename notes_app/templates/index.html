@@ -136,6 +136,9 @@
                                 <span class="file-icon file-icon">📄</span>
                             {% endif %}
                             <span class="file-name">{{ item.name }}</span>
+                            <button class="file-info-btn" 
+                                    onclick="event.stopPropagation(); showFileInfo('{{ item.relative_path }}')"
+                                    title="File Information">ℹ️</button>
                             <button class="file-options-btn" 
                                     onclick="event.stopPropagation(); showFileOptions(event, '{{ item.relative_path }}', {{ 'true' if item.is_dir else 'false' }})"
                                     title="Options">⋯</button>
@@ -184,6 +187,9 @@
                         <div class="grid-icon">📄</div>
                     {% endif %}
                     <div class="grid-name">{{ item.name }}</div>
+                    <button class="grid-info-btn" 
+                            onclick="event.stopPropagation(); showFileInfo('{{ item.relative_path }}')"
+                            title="File Information">ℹ️</button>
                     <button class="grid-options-btn" 
                             onclick="event.stopPropagation(); showFileOptions(event, '{{ item.relative_path }}', {{ 'true' if item.is_dir else 'false' }})"
                             title="Options">⋯</button>
@@ -470,6 +476,21 @@
 
     <!-- Notification Container -->
     <div id="notification-container" class="notification-container"></div>
+
+    <!-- File Information Modal -->
+    <div id="file-info-modal" class="modal">
+        <div class="modal-content" style="min-width: 600px; max-width: 900px; max-height: 90vh;">
+            <div class="modal-title-bar">
+                <div class="modal-title-text">File Information</div>
+                <button class="modal-close" onclick="closeModal('file-info-modal')" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body" style="padding: 20px; overflow-y: auto;">
+                <div id="file-info-content" style="font-size: 11px;">
+                    <div style="text-align: center; padding: 20px; color: #808080;">Loading file information...</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

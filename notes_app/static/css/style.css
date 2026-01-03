@@ -1043,14 +1043,16 @@ body {
 
 /* File Options Button */
 .file-options-btn,
-.grid-options-btn {
+.grid-options-btn,
+.file-info-btn,
+.grid-info-btn {
     background: transparent;
     border: none;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
     color: #606060;
     padding: 2px 6px;
-    margin-left: auto;
+    margin-left: 4px;
     opacity: 0;
     transition: opacity 0.2s;
     line-height: 1;
@@ -1058,31 +1060,96 @@ body {
 }
 
 .file-item:hover .file-options-btn,
-.grid-item:hover .grid-options-btn {
+.file-item:hover .file-info-btn,
+.grid-item:hover .grid-options-btn,
+.grid-item:hover .grid-info-btn {
     opacity: 1;
 }
 
 .file-options-btn:hover,
-.grid-options-btn:hover {
+.grid-options-btn:hover,
+.file-info-btn:hover,
+.grid-info-btn:hover {
     color: #000080;
     background: #d4d0c8;
     border: 1px outset #c0c0c0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .file-options-btn:active,
-.grid-options-btn:active {
+.grid-options-btn:active,
+.file-info-btn:active,
+.grid-info-btn:active {
     border: 1px inset #c0c0c0;
 }
 
-.grid-options-btn {
+.grid-options-btn,
+.grid-info-btn {
     position: absolute;
     top: 4px;
-    right: 4px;
     opacity: 0.7;
+}
+
+.grid-info-btn {
+    right: 30px;
+}
+
+.grid-options-btn {
+    right: 4px;
 }
 
 .grid-item {
     position: relative;
+}
+
+/* File Info Modal Styles */
+.file-info-section {
+    margin-bottom: 20px;
+    border: 1px inset #c0c0c0;
+    background: #f0f0f0;
+    padding: 12px;
+}
+
+.file-info-section-title {
+    font-weight: bold;
+    font-size: 12px;
+    color: #000080;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #c0c0c0;
+    padding-bottom: 4px;
+}
+
+.file-info-row {
+    display: flex;
+    padding: 4px 0;
+    border-bottom: 1px dotted #d0d0d0;
+    font-size: 11px;
+}
+
+.file-info-row:last-child {
+    border-bottom: none;
+}
+
+.file-info-label {
+    font-weight: bold;
+    min-width: 180px;
+    color: #000;
+    flex-shrink: 0;
+}
+
+.file-info-value {
+    color: #606060;
+    word-break: break-all;
+    flex: 1;
+}
+
+.file-info-value.boolean-true {
+    color: #008000;
+    font-weight: bold;
+}
+
+.file-info-value.boolean-false {
+    color: #800000;
 }
 
 /* Clipboard Indicator */

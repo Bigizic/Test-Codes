@@ -7,6 +7,8 @@ A simple, offline file browser with retro UI styling.
 import os
 import urllib.parse
 import mimetypes
+import stat
+import platform
 from datetime import datetime
 from flask import Flask, render_template, send_file, abort, request, jsonify, redirect, url_for, flash, session
 from werkzeug.utils import secure_filename
@@ -651,6 +653,207 @@ def move_file():
         # Move
         shutil.move(source_full, dest_path)
         return jsonify({'success': True, 'message': 'Moved successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/file_info/<path:filepath>')
+def get_file_info_endpoint(filepath=''):
+    """Get comprehensive file metadata and information."""
+    if not filepath:
+        return jsonify({'error': 'File path is required'}), 400
+    
+    # Decode URL-encoded path
+    filepath = urllib.parse.unquote(filepath)
+    
+    # Construct the full path
+    full_path = os.path.join(ROOT_DIRECTORY, filepath)
+    
+    # Security check
+    if not is_safe_path(ROOT_DIRECTORY, full_path):
+        return jsonify({'error': 'Invalid path'}), 403
+    
+    # Check if path exists
+    if not os.path.exists(full_path):
+        return jsonify({'error': 'File or folder does not exist'}), 404
+    
+    try:
+        import stat
+        import platform
+        
+        # Get comprehensive file statistics
+        file_stat = os.stat(full_path)
+        file_stat_lstat = os.lstat(full_path) if os.path.islink(full_path) else file_stat
+        
+        # Basic information
+        info = {
+            'name': os.path.basename(full_path),
+            'full_path': full_path,
+            'relative_path': filepath,
+            'is_directory': os.path.isdir(full_path),
+            'is_file': os.path.isfile(full_path),
+            'is_link': os.path.islink(full_path),
+            'is_symlink': os.path.islink(full_path),
+        }
+        
+        # If it's a symlink, get the target
+        if os.path.islink(full_path):
+            try:
+                info['symlink_target'] = os.readlink(full_path)
+            except:
+                info['symlink_target'] = 'Unable to read link target'
+        
+        # File size information
+        if os.path.isfile(full_path):
+            info['size_bytes'] = file_stat.st_size
+            info['size_formatted'] = format_file_size(file_stat.st_size)
+            info['size_kb'] = round(file_stat.st_size / 1024, 2)
+            info['size_mb'] = round(file_stat.st_size / (1024 * 1024), 2)
+        elif os.path.isdir(full_path):
+            # Try to get directory size (may be slow for large directories)
+            try:
+                total_size = 0
+                for dirpath, dirnames, filenames in os.walk(full_path):
+                    for filename in filenames:
+                        try:
+                            total_size += os.path.getsize(os.path.join(dirpath, filename))
+                        except:
+                            pass
+                info['directory_size_bytes'] = total_size
+                info['directory_size_formatted'] = format_file_size(total_size)
+            except:
+                info['directory_size_formatted'] = 'Unable to calculate'
+        
+        # Timestamps
+        info['created'] = datetime.fromtimestamp(file_stat.st_ctime).strftime('%Y-%m-%d %H:%M:%S')
+        info['created_timestamp'] = file_stat.st_ctime
+        info['modified'] = datetime.fromtimestamp(file_stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+        info['modified_timestamp'] = file_stat.st_mtime
+        info['accessed'] = datetime.fromtimestamp(file_stat.st_atime).strftime('%Y-%m-%d %H:%M:%S')
+        info['accessed_timestamp'] = file_stat.st_atime
+        
+        # File extension and type
+        file_ext = os.path.splitext(full_path)[1].lower()
+        info['extension'] = file_ext
+        info['extension_without_dot'] = file_ext.lstrip('.')
+        info['filename_without_ext'] = os.path.splitext(os.path.basename(full_path))[0]
+        
+        # MIME type
+        mime_type, encoding = mimetypes.guess_type(full_path)
+        info['mime_type'] = mime_type or 'unknown'
+        info['mime_encoding'] = encoding or 'none'
+        
+        # File permissions (Unix-style)
+        if platform.system() != 'Windows':
+            mode = file_stat.st_mode
+            info['permissions_octal'] = oct(stat.S_IMODE(mode))
+            info['permissions_string'] = stat.filemode(mode)
+            
+            # Detailed permission breakdown
+            info['owner_read'] = bool(mode & stat.S_IRUSR)
+            info['owner_write'] = bool(mode & stat.S_IWUSR)
+            info['owner_execute'] = bool(mode & stat.S_IXUSR)
+            info['group_read'] = bool(mode & stat.S_IRGRP)
+            info['group_write'] = bool(mode & stat.S_IWGRP)
+            info['group_execute'] = bool(mode & stat.S_IXGRP)
+            info['other_read'] = bool(mode & stat.S_IROTH)
+            info['other_write'] = bool(mode & stat.S_IWOTH)
+            info['other_execute'] = bool(mode & stat.S_IXOTH)
+            info['setuid'] = bool(mode & stat.S_ISUID)
+            info['setgid'] = bool(mode & stat.S_ISGID)
+            info['sticky_bit'] = bool(mode & stat.S_ISVTX)
+            
+            # Owner and group
+            try:
+                import pwd
+                import grp
+                owner = pwd.getpwuid(file_stat.st_uid)
+                group = grp.getgrgid(file_stat.st_gid)
+                info['owner_name'] = owner.pw_name
+                info['owner_id'] = file_stat.st_uid
+                info['group_name'] = group.gr_name
+                info['group_id'] = file_stat.st_gid
+            except:
+                info['owner_id'] = file_stat.st_uid
+                info['group_id'] = file_stat.st_gid
+                info['owner_name'] = 'Unknown'
+                info['group_name'] = 'Unknown'
+        else:
+            info['owner_id'] = file_stat.st_uid
+            info['group_id'] = file_stat.st_gid
+            info['owner_name'] = 'Unknown'
+            info['group_name'] = 'Unknown'
+        
+        # Inode and device information (Unix)
+        if platform.system() != 'Windows':
+            info['inode'] = file_stat.st_ino
+            info['device'] = file_stat.st_dev
+            info['hard_links'] = file_stat.st_nlink
+            mode = file_stat.st_mode
+            info['device_type'] = file_stat.st_rdev if stat.S_ISCHR(mode) or stat.S_ISBLK(mode) else None
+        
+        # File type flags
+        mode = file_stat.st_mode
+        info['is_block_device'] = stat.S_ISBLK(mode) if platform.system() != 'Windows' else False
+        info['is_char_device'] = stat.S_ISCHR(mode) if platform.system() != 'Windows' else False
+        info['is_fifo'] = stat.S_ISFIFO(mode) if platform.system() != 'Windows' else False
+        info['is_socket'] = stat.S_ISSOCK(mode) if platform.system() != 'Windows' else False
+        
+        # Additional metadata
+        info['parent_directory'] = os.path.dirname(full_path)
+        info['absolute_path'] = os.path.abspath(full_path)
+        info['canonical_path'] = os.path.realpath(full_path)
+        
+        # Check if file is readable/writable/executable
+        info['is_readable'] = os.access(full_path, os.R_OK)
+        info['is_writable'] = os.access(full_path, os.W_OK)
+        info['is_executable'] = os.access(full_path, os.X_OK)
+        
+        # File content type detection
+        if os.path.isfile(full_path):
+            info['is_text'] = False
+            info['is_binary'] = False
+            try:
+                with open(full_path, 'rb') as f:
+                    chunk = f.read(512)
+                    if chunk:
+                        # Check if file contains null bytes (binary indicator)
+                        if b'\x00' in chunk:
+                            info['is_binary'] = True
+                        else:
+                            # Try to decode as text
+                            try:
+                                chunk.decode('utf-8')
+                                info['is_text'] = True
+                            except:
+                                try:
+                                    chunk.decode('latin-1')
+                                    info['is_text'] = True
+                                except:
+                                    info['is_binary'] = True
+            except:
+                pass
+        
+        # Line count for text files
+        if info.get('is_text') and os.path.isfile(full_path):
+            try:
+                with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    info['line_count'] = sum(1 for _ in f)
+            except:
+                try:
+                    with open(full_path, 'r', encoding='latin-1', errors='ignore') as f:
+                        info['line_count'] = sum(1 for _ in f)
+                except:
+                    info['line_count'] = 'Unable to count'
+        
+        # Platform information
+        info['platform'] = platform.system()
+        info['platform_version'] = platform.version()
+        
+        return jsonify({'success': True, 'info': info})
+    
+    except PermissionError:
+        return jsonify({'error': 'Permission denied'}), 403
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
