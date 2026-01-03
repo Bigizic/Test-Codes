@@ -61,12 +61,12 @@
             {% if notes %}
             <div class="notes-list">
                 {% for note in notes %}
-                <div class="note-card" data-note-id="{{ note.id }}">
+                <div class="note-card" data-note-id="{{ note.id }}" onclick="viewNote({{ note.id }})">
                     <div class="note-header">
                         <div class="note-title-display">{{ note.title or '(Untitled)' }}</div>
                         <div class="note-actions">
-                            <button class="note-action-btn" onclick="editNote({{ note.id }})" title="Edit">✏️</button>
-                            <button class="note-action-btn" onclick="deleteNote({{ note.id }})" title="Delete">🗑️</button>
+                            <button class="note-action-btn" onclick="event.stopPropagation(); editNote({{ note.id }})" title="Edit">✏️</button>
+                            <button class="note-action-btn" onclick="event.stopPropagation(); deleteNote({{ note.id }})" title="Delete">🗑️</button>
                         </div>
                     </div>
                     <div class="note-content-preview">{{ note.content[:200] }}{% if note.content|length > 200 %}...{% endif %}</div>
@@ -93,6 +93,9 @@
             <span class="ctx-icon">➕</span> Create Note
         </div>
         <div class="context-menu-separator"></div>
+        <div class="context-menu-item" id="ctx-view-note" style="display: none;">
+            <span class="ctx-icon">👁️</span> View Note
+        </div>
         <div class="context-menu-item" id="ctx-edit-note" style="display: none;">
             <span class="ctx-icon">✏️</span> Edit Note
         </div>
@@ -144,6 +147,13 @@
                 hideNotesContextMenu();
             });
             
+            document.getElementById('ctx-view-note').addEventListener('click', function() {
+                if (selectedNoteId) {
+                    window.location.href = '/notes/' + selectedNoteId;
+                }
+                hideNotesContextMenu();
+            });
+            
             document.getElementById('ctx-edit-note').addEventListener('click', function() {
                 if (selectedNoteId) {
                     window.location.href = '/notes/' + selectedNoteId + '/edit';
@@ -162,13 +172,16 @@
         function showNotesContextMenu(e, hasSelection) {
             if (!notesContextMenu) return;
             
+            const viewOption = document.getElementById('ctx-view-note');
             const editOption = document.getElementById('ctx-edit-note');
             const deleteOption = document.getElementById('ctx-delete-note');
             
             if (hasSelection) {
+                if (viewOption) viewOption.style.display = 'block';
                 editOption.style.display = 'block';
                 deleteOption.style.display = 'block';
             } else {
+                if (viewOption) viewOption.style.display = 'none';
                 editOption.style.display = 'none';
                 deleteOption.style.display = 'none';
             }
@@ -194,18 +207,29 @@
             selectedNoteId = null;
         }
 
+        function viewNote(noteId) {
+            window.location.href = '/notes/' + noteId;
+        }
+
         function editNote(noteId) {
             window.location.href = '/notes/' + noteId + '/edit';
         }
 
         function deleteNote(noteId) {
-            if (confirm('Are you sure you want to delete this note?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '/notes/' + noteId + '/delete';
-                document.body.appendChild(form);
-                form.submit();
-            }
+            showConfirmationNotification(
+                'Are you sure you want to delete this note?',
+                function() {
+                    // Yes - proceed with deletion
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/notes/' + noteId + '/delete';
+                    document.body.appendChild(form);
+                    form.submit();
+                },
+                function() {
+                    // No - do nothing
+                }
+            );
         }
 
         function refreshNotes() {
@@ -247,6 +271,12 @@
             });
         });
     </script>
+    
+    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container"></div>
+    
+    <!-- Load notification functions from app.js -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
 

@@ -14,6 +14,89 @@ let currentPreviewIsImage = false;
  * @param {string} type - 'info', 'success', 'error' (default: 'info')
  * @param {number} duration - Auto-close duration in ms (0 = no auto-close, default: 5000)
  */
+/**
+ * Show a confirmation notification with Yes/No buttons
+ * @param {string} message - The message to display
+ * @param {function} onConfirm - Callback function when Yes is clicked
+ * @param {function} onCancel - Optional callback function when No is clicked
+ * @returns {Object} - Object with close method
+ */
+function showConfirmationNotification(message, onConfirm, onCancel = null) {
+    const container = document.getElementById('notification-container');
+    if (!container) return null;
+    
+    // Remove existing notifications to show only one at a time in center
+    const existingNotifications = container.querySelectorAll('.notification');
+    existingNotifications.forEach(notif => notif.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = 'notification confirm';
+    
+    const header = document.createElement('div');
+    header.className = 'notification-header';
+    
+    const title = document.createElement('div');
+    title.className = 'notification-title';
+    title.textContent = 'Confirm';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'notification-close';
+    closeBtn.innerHTML = '×';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.onclick = () => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+        if (onCancel) onCancel();
+    };
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    
+    const body = document.createElement('div');
+    body.className = 'notification-body';
+    body.textContent = message;
+    
+    // Add buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.gap = '10px';
+    buttonContainer.style.marginTop = '16px';
+    buttonContainer.style.justifyContent = 'flex-end';
+    
+    const noButton = document.createElement('button');
+    noButton.className = 'button-secondary';
+    noButton.textContent = 'No';
+    noButton.onclick = () => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+        if (onCancel) onCancel();
+    };
+    
+    const yesButton = document.createElement('button');
+    yesButton.className = 'button-primary';
+    yesButton.textContent = 'Yes';
+    yesButton.onclick = () => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+        if (onConfirm) onConfirm();
+    };
+    
+    buttonContainer.appendChild(noButton);
+    buttonContainer.appendChild(yesButton);
+    body.appendChild(buttonContainer);
+    
+    notification.appendChild(header);
+    notification.appendChild(body);
+    container.appendChild(notification);
+    
+    return {
+        close: () => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }
+    };
+}
+
 function showNotification(message, type = 'info', duration = 5000) {
     const container = document.getElementById('notification-container');
     if (!container) return;

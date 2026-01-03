@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Note - File Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="window">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="title-bar-text">View Note: {{ note.title or '(Untitled)' }}</div>
+            <div class="title-bar-controls">
+                <button aria-label="Minimize"></button>
+                <button aria-label="Maximize"></button>
+                <button aria-label="Close" onclick="window.location.href='{{ url_for('notes_list') }}'">×</button>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button class="toolbar-button" onclick="window.location.href='/'">
+                <span class="icon">🏠</span> Home
+            </button>
+            <button class="toolbar-button" onclick="window.location.href='{{ url_for('notes_list') }}'">
+                <span class="icon">📝</span> All Notes
+            </button>
+            <button class="toolbar-button" onclick="window.location.href='{{ url_for('edit_note', note_id=note.id) }}'">
+                <span class="icon">✏️</span> Edit
+            </button>
+        </div>
+
+        <!-- Note Viewer -->
+        <div class="note-editor-container">
+            <div class="note-view-content">
+                <div class="note-view-header">
+                    <h2 class="note-view-title">{{ note.title or '(Untitled)' }}</h2>
+                    <div class="note-view-meta">
+                        <span>Created: {{ note.created_at.strftime('%Y-%m-%d %H:%M:%S') if note.created_at else 'N/A' }}</span>
+                        <span>Updated: {{ note.updated_at.strftime('%Y-%m-%d %H:%M:%S') if note.updated_at else 'N/A' }}</span>
+                    </div>
+                </div>
+                
+                <div class="note-view-body">
+                    <pre class="note-content-display">{{ note.content or '(No content)' }}</pre>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="button-primary" onclick="window.location.href='{{ url_for('edit_note', note_id=note.id) }}'">Edit Note</button>
+                    <button type="button" class="button-secondary" onclick="window.location.href='{{ url_for('notes_list') }}'">Back to Notes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

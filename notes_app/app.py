@@ -934,6 +934,34 @@ def create_note():
     return render_template('note_edit.html', note=None)
 
 
+@app.route('/notes/<int:note_id>')
+def view_note(note_id):
+    """View a note (read-only)."""
+    connection = get_db_connection()
+    if not connection:
+        return render_template('error.html', 
+                             error_code=500, 
+                             error_message="Database connection failed"), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM notes WHERE id = %s", (note_id,))
+        note = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        
+        if not note:
+            abort(404)
+        
+        return render_template('note_view.html', note=note)
+    except Error as e:
+        if connection:
+            connection.close()
+        return render_template('error.html', 
+                             error_code=500, 
+                             error_message=f"Error fetching note: {str(e)}"), 500
+
+
 @app.route('/notes/<int:note_id>/edit', methods=['GET', 'POST'])
 def edit_note(note_id):
     """Edit an existing note."""

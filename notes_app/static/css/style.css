@@ -770,6 +770,11 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.note-card:active {
+    background: #d0e8f0;
+    border: 1px inset #c0c0c0;
+}
+
 .note-header {
     display: flex;
     justify-content: space-between;
@@ -909,6 +914,53 @@ body {
     gap: 10px;
     margin-top: 20px;
     justify-content: flex-end;
+}
+
+/* Note View Styles */
+.note-view-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.note-view-header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #c0c0c0;
+}
+
+.note-view-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000080;
+    margin-bottom: 12px;
+}
+
+.note-view-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 11px;
+    color: #606060;
+    font-family: 'Courier New', monospace;
+}
+
+.note-view-body {
+    background: white;
+    border: 1px inset #c0c0c0;
+    padding: 20px;
+    min-height: 300px;
+    margin-bottom: 20px;
+}
+
+.note-content-display {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #000;
+    margin: 0;
+    overflow-x: auto;
 }
 
 /* Context Menu Styles */
