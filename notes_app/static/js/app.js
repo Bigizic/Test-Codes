@@ -413,16 +413,36 @@ function closeModal(modalId) {
  * Menu functions
  */
 
-function selectAll() {
-    // Select all file items (visual feedback)
-    const fileItems = document.querySelectorAll('.file-item');
-    fileItems.forEach(item => {
-        item.classList.add('selected');
-    });
+let isAllSelected = false;
+
+function toggleSelectAll() {
+    if (isAllSelected) {
+        // Unselect all
+        const fileItems = document.querySelectorAll('.file-item, .grid-item');
+        fileItems.forEach(item => {
+            item.classList.remove('selected');
+        });
+        isAllSelected = false;
+    } else {
+        // Select all - works for both list and grid view
+        const fileItems = document.querySelectorAll('.file-item, .grid-item');
+        fileItems.forEach(item => {
+            item.classList.add('selected');
+        });
+        isAllSelected = true;
+    }
+    
+    updateSelectAllState();
+    
     // Close menu
     document.querySelectorAll('.menu-item').forEach(item => {
         item.classList.remove('active');
     });
+}
+
+function selectAll() {
+    // Legacy function for compatibility - redirects to toggle
+    toggleSelectAll();
 }
 
 function copyPath() {
@@ -484,6 +504,57 @@ function closeApplication() {
     window.location.replace('/');
 }
 
+// Zoom functionality
+let currentZoom = 100;
+
+function adjustZoom(amount) {
+    currentZoom = Math.max(50, Math.min(300, currentZoom + amount));
+    applyZoom();
+    updateZoomDisplay();
+    localStorage.setItem('fileExplorerZoom', currentZoom);
+}
+
+function resetZoom() {
+    currentZoom = 100;
+    applyZoom();
+    updateZoomDisplay();
+    localStorage.setItem('fileExplorerZoom', currentZoom);
+}
+
+function applyZoom() {
+    // Apply zoom using transform scale on body
+    const scale = currentZoom / 100;
+    document.body.style.transform = `scale(${scale})`;
+    document.body.style.transformOrigin = 'top center';
+}
+
+function updateZoomDisplay() {
+    const zoomLevel = document.getElementById('zoom-level');
+    if (zoomLevel) {
+        zoomLevel.textContent = currentZoom + '%';
+    }
+}
+
+// Load saved zoom on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedZoom = localStorage.getItem('fileExplorerZoom');
+    if (savedZoom) {
+        currentZoom = parseInt(savedZoom, 10);
+        applyZoom();
+        updateZoomDisplay();
+    }
+    
+    // Check if items are selected to update select all state
+    const fileItems = document.querySelectorAll('.file-item, .grid-item');
+    const selectedItems = document.querySelectorAll('.file-item.selected, .grid-item.selected');
+    isAllSelected = fileItems.length > 0 && selectedItems.length === fileItems.length;
+    
+    const selectAllOption = document.getElementById('select-all-option');
+    if (selectAllOption && isAllSelected) {
+        selectAllOption.textContent = 'Unselect All';
+    }
+});
+
 // Load saved view mode on page load
 document.addEventListener('DOMContentLoaded', function() {
     // Only set view mode if we're on the file explorer page
@@ -502,9 +573,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isDir = this.dataset.isDir === 'true';
                 showContextMenu(e, path, isDir);
             });
+            
+            // Add Ctrl+Click or Cmd+Click for selection
+            item.addEventListener('click', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.classList.toggle('selected');
+                    updateSelectAllState();
+                }
+            });
         });
     }
 });
+
+// Update select all state based on current selection
+function updateSelectAllState() {
+    const fileItems = document.querySelectorAll('.file-item, .grid-item');
+    const selectedItems = document.querySelectorAll('.file-item.selected, .grid-item.selected');
+    isAllSelected = fileItems.length > 0 && selectedItems.length === fileItems.length;
+    
+    const selectAllOption = document.getElementById('select-all-option');
+    if (selectAllOption) {
+        selectAllOption.textContent = isAllSelected ? 'Unselect All' : 'Select All';
+    }
+}
 
 function showHiddenFiles() {
     // This would require backend changes to show hidden files

@@ -37,7 +37,7 @@
             <div class="menu-item">
                 <button class="menu-button" id="edit-menu-btn">Edit</button>
                 <div class="menu-dropdown" id="edit-menu">
-                    <div class="menu-item-option" onclick="selectAll()">Select All</div>
+                    <div class="menu-item-option" id="select-all-option" onclick="toggleSelectAll()">Select All</div>
                     <div class="menu-item-option" onclick="copyPath()">Copy Current Path</div>
                 </div>
             </div>
@@ -201,12 +201,18 @@
                     0 items
                 {% endif %}
             </div>
-            <div class="status-bar-field">
+            <div class="status-bar-field" style="position: relative;">
                 {% if current_path %}
                     {{ current_path }}
                 {% else %}
                     {{ root_dir }}
                 {% endif %}
+                <div class="zoom-control" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 4px;">
+                    <button class="zoom-btn" onclick="adjustZoom(-10)" title="Zoom Out">−</button>
+                    <span class="zoom-level" id="zoom-level">100%</span>
+                    <button class="zoom-btn" onclick="adjustZoom(10)" title="Zoom In">+</button>
+                    <button class="zoom-reset-btn" onclick="resetZoom()" title="Reset Zoom">⟲</button>
+                </div>
             </div>
         </div>
     </div>
