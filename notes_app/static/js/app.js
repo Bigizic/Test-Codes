@@ -1424,12 +1424,20 @@ function moveBrowserGoHome() {
 // Initialize file options menu
 document.addEventListener('DOMContentLoaded', function() {
     // File options menu handlers
+    const optInfo = document.getElementById('opt-info');
     const optRename = document.getElementById('opt-rename');
     const optCopy = document.getElementById('opt-copy');
     const optCut = document.getElementById('opt-cut');
     const optPaste = document.getElementById('opt-paste');
     const optMove = document.getElementById('opt-move');
     const optDelete = document.getElementById('opt-delete');
+    
+    if (optInfo) {
+        optInfo.addEventListener('click', function() {
+            showFileInfo(currentFileOptionsPath);
+            hideFileOptionsMenu();
+        });
+    }
     
     if (optRename) {
         optRename.addEventListener('click', function() {

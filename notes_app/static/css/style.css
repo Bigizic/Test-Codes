@@ -1043,16 +1043,14 @@ body {
 
 /* File Options Button */
 .file-options-btn,
-.grid-options-btn,
-.file-info-btn,
-.grid-info-btn {
+.grid-options-btn {
     background: transparent;
     border: none;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
     color: #606060;
     padding: 2px 6px;
-    margin-left: 4px;
+    margin-left: auto;
     opacity: 0;
     transition: opacity 0.2s;
     line-height: 1;
@@ -1060,16 +1058,12 @@ body {
 }
 
 .file-item:hover .file-options-btn,
-.file-item:hover .file-info-btn,
-.grid-item:hover .grid-options-btn,
-.grid-item:hover .grid-info-btn {
+.grid-item:hover .grid-options-btn {
     opacity: 1;
 }
 
 .file-options-btn:hover,
-.grid-options-btn:hover,
-.file-info-btn:hover,
-.grid-info-btn:hover {
+.grid-options-btn:hover {
     color: #000080;
     background: #d4d0c8;
     border: 1px outset #c0c0c0;
@@ -1077,25 +1071,15 @@ body {
 }
 
 .file-options-btn:active,
-.grid-options-btn:active,
-.file-info-btn:active,
-.grid-info-btn:active {
+.grid-options-btn:active {
     border: 1px inset #c0c0c0;
 }
 
-.grid-options-btn,
-.grid-info-btn {
+.grid-options-btn {
     position: absolute;
     top: 4px;
-    opacity: 0.7;
-}
-
-.grid-info-btn {
-    right: 30px;
-}
-
-.grid-options-btn {
     right: 4px;
+    opacity: 0.7;
 }
 
 .grid-item {
