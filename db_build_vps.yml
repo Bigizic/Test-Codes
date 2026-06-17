@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # --- MongoDB Service ---
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_v1
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: supersecretpassword
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./mongod.conf:/etc/mongod.conf:ro
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  # --- Redis Service ---
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: redis-server --appendonly yes --requirepass supersecretredispack
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app_network
+    restart: unless-stopped
+
+# --- Shared Resources ---
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+  redis-data:
